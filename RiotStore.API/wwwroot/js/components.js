@@ -26,8 +26,8 @@ function renderNavbar() {
             </div>
 
             <div class="flex items-center gap-4">
-                <a href="admin.html" class="px-4 py-2 text-black border bg-white hover:bg-amber-500 hover:border-amber-500 transition uppercase text-sm font-bold">
-                    Admin
+                <a href="simulator.html" class="px-4 py-2 text-black border bg-white hover:bg-amber-500 hover:border-amber-500 transition uppercase text-sm font-bold">
+                    Simulador
                 </a>
 
                 <a href="cart.html" class="relative p-2 text-white  hover:bg-amber-500 hover:text-black transition rounded">
