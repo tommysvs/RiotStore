@@ -1,10 +1,147 @@
-﻿<!DOCTYPE html>
-<html>
+﻿<html lang="es">
 <head>
-    <meta charset="utf-8" />
-    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Producto - Riot Merch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css">
 </head>
-<body>
+<body class="bg-white text-gray-900 font-sans">
+    <nav id="navbar-container" class="bg-black sticky top-0 z-50 shadow-md"></nav>
+    <main id="main-content"></main>
+    <footer id="booter-container" class="bg-black mt-20"></footer>
 
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const productId = params.get('id');
+        let currentProduct = null;
+
+        async function loadProductPage() {
+            renderNavbar();
+            renderFooter();
+
+            const mainContent = document.getElementById('main-content');
+
+            try {
+                const response = await fetch(`/api/products/${productId}`);
+                currentProduct = await response.json();
+
+                mainContent.innerHTML = `
+                            ${renderBreadcrumb([
+                    { label: 'Inicio', href: 'index.html' },
+                    { label: 'Catálogo', href: 'catalog.html' },
+                    { label: currentProduct.name }
+                ])}
+
+                            <section class="max-w-7xl mx-auto px-4 py-12">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                    <div class="flex flex-col gap-4">
+                                        <div class="aspect-square bg-gray-100 border border-gray-200 overflow-hidden">
+                                            <img src="${currentProduct.image}" alt="${currentProduct.name}" class="w-full h-full object-cover">
+                                        </div>
+                                        <p id="stock-indicator" class="text-center text-sm font-semibold py-2 px-4 border-2 border-gray-200">
+                                            ${getStockLabel(currentProduct.stock)}
+                                        </p>
+                                    </div>
+
+                                    <div class="flex flex-col justify-start">
+                                        <p class="text-red-600 text-xs uppercase tracking-wider font-bold mb-4">${currentProduct.category}</p>
+                                        <h1 class="text-4xl font-black text-gray-900 uppercase tracking-tight mb-6">${currentProduct.name}</h1>
+                                        <p class="text-gray-600 text-lg leading-relaxed mb-8">${currentProduct.description}</p>
+
+                                        <div class="mb-8">
+                                            <p class="text-gray-700 uppercase text-sm tracking-wider mb-2 font-bold">Precio</p>
+                                            <p class="text-5xl font-black text-gray-900">${formatPrice(currentProduct.price)}</p>
+                                        </div>
+
+                                        <div class="mb-8">
+                                            <p class="text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Cantidad</p>
+                                            <div class="flex gap-4 items-center">
+                                                <button id="qty-minus" class="w-12 h-12 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition font-bold text-xl">−</button>
+                                                <input id="qty-input" type="number" min="1" value="1" class="w-20 h-12 bg-white border-2 border-gray-300 text-center text-lg font-bold text-red-600">
+                                                <button id="qty-plus" class="w-12 h-12 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition font-bold text-xl">+</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex gap-4">
+                                            <button id="btn-add-cart" class="flex-1 px-6 py-4 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition border-2 border-red-600">
+                                                Añadir al Carrito
+                                            </button>
+                                            <button id="btn-buy-now" class="flex-1 px-6 py-4 bg-gray-900 text-white font-bold uppercase tracking-widest hover:bg-black transition border-2 border-gray-900">
+                                                Comprar Ahora
+                                            </button>
+                                        </div>
+
+                                        <div class="mt-12 pt-8 border-t-2 border-gray-200">
+                                            <p class="text-gray-600 text-sm mb-4">
+                                                <span class="block font-bold text-red-600 mb-2">ENVÍO GRATUITO</span>
+                                                En compras mayores a $50 USD
+                                            </p>
+                                            <p class="text-gray-600 text-sm">
+                                                <span class="block font-bold text-red-600 mb-2">GARANTÍA 30 DÍAS</span>
+                                                Devoluciones sin complicaciones
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="max-w-7xl mx-auto px-4 py-20">
+                                <div class="mb-16">
+                                    <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">Productos Relacionados</h2>
+                                    <div class="w-16 h-1 bg-red-600"></div>
+                                </div>
+                                <div id="related-products" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <!-- Cargado dinámicamente -->
+                                </div>
+                            </section>
+                        `;
+
+                document.getElementById('qty-minus').addEventListener('click', () => {
+                    const input = document.getElementById('qty-input');
+                    if (input.value > 1) input.value--;
+                });
+
+                document.getElementById('qty-plus').addEventListener('click', () => {
+                    document.getElementById('qty-input').value++;
+                });
+
+                document.getElementById('btn-add-cart').addEventListener('click', () => {
+                    const quantity = parseInt(document.getElementById('qty-input').value);
+                    addToCart(currentProduct, quantity);
+                    showNotification('Producto añadido al carrito', 'success');
+                });
+
+                document.getElementById('btn-buy-now').addEventListener('click', () => {
+                    const quantity = parseInt(document.getElementById('qty-input').value);
+                    addToCart(currentProduct, quantity);
+                    window.location.href = 'cart.html';
+                });
+
+                await loadRelatedProducts(currentProduct.category);
+            } catch (error) {
+                console.error('Error loading product:', error);
+                mainContent.innerHTML = '<div class="text-center py-20 text-red-600"><p>Producto no encontrado</p></div>';
+            }
+
+            updateCartBadge();
+        }
+
+        async function loadRelatedProducts(category) {
+            try {
+                const response = await fetch(`/api/products?category=${category}&limit=4`);
+                const products = await response.json();
+                const filtered = products.filter(p => p.id !== productId);
+                const container = document.getElementById('related-products');
+                container.innerHTML = filtered.slice(0, 4).map(p => renderProductCard(p)).join('');
+            } catch (error) {
+                console.error('Error loading related products:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProductPage);
+    </script>
 </body>
 </html>

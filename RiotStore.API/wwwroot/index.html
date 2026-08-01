@@ -1,10 +1,70 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <meta charset="utf-8" />
-    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riot Merch - League of Legends Classic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css">
 </head>
-<body>
+<body class="bg-white text-gray-900 font-sans">
+    <nav id="navbar-container" class="bg-black sticky top-0 z-50 shadow-md"></nav>
+    <main id="main-content"></main>
+    <footer id="booter-container" class="bg-black mt-20"></footer>
 
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script>
+        async function loadHomePage() {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                            <section class="relative w-full h-96 md:h-screen bg-gradient-to-r from-black to-gray-900 flex items-center overflow-hidden">
+                                <div class="absolute inset-0">
+                                    <img src="/assets/img/hero.png" alt="Flash Sale Banner" class="w-full h-full object-cover opacity-40">
+                                </div>
+
+                                <div class="relative z-10 max-w-7xl mx-auto px-4 w-full">
+                                    <div class="max-w-2xl">
+                                        <h1 class="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-4">
+                                            Flash sale
+                                        </h1>
+                                        <p class="text-xl md:text-2xl text-amber-400 uppercase tracking-widest mb-8 font-semibold">
+                                            Colección Exclusiva de League of Legends Classic
+                                        </p>
+
+                                        <a href="catalog.html" class="inline-block px-8 py-3 bg-red-600 text-white font-bold uppercase tracking-wider hover:bg-amber-500 hover:text-black transition">
+                                            Ver Colección Completa
+                                        </a>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="max-w-7xl mx-auto px-4 py-20">
+                                <div class="mb-16">
+                                    <h2 class="text-4xl font-black text-gray-900 uppercase tracking-tight mb-2">
+                                        Artículos destacados
+                                    </h2>
+                                    <div class="w-16 h-1 bg-red-600"></div>
+                                </div>
+                                <div id="featured-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                                    <!-- Cargado dinámicamente -->
+                                </div>
+                            </section>
+                        `;
+
+            try {
+                const response = await fetch('/api/products?featured=true&limit=4');
+                const products = await response.json();
+                const container = document.getElementById('featured-products');
+                container.innerHTML = products.map(p => renderProductCard(p)).join('');
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+
+            initTimer();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadHomePage);
+    </script>
 </body>
 </html>

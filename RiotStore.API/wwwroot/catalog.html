@@ -1,10 +1,115 @@
-﻿<!DOCTYPE html>
-<html>
+﻿<html lang="es">
 <head>
-    <meta charset="utf-8" />
-    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - Riot Merch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css">
 </head>
-<body>
+<body class="bg-white text-gray-900 font-sans">
+    <nav id="navbar-container" class="bg-black sticky top-0 z-50 shadow-md"></nav>
+    <main id="main-content"></main>
+    <footer id="booter-container" class="bg-black mt-20"></footer>
 
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script>
+        let allProducts = [];
+        let currentCategory = 'todos';
+
+        async function loadCatalogPage() {
+            renderNavbar();
+            renderFooter();
+
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                    <section class="bg-gray-50 border-b border-gray-200 py-6">
+                        <div class="max-w-7xl mx-auto px-4">
+                            <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-6">Filtrar por Categoría</h2>
+                            <div class="flex gap-3 flex-wrap">
+                                <button class="filter-btn px-6 py-2 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition uppercase text-sm font-bold active" data-category="todos">
+                                    Todos
+                                </button>
+                                <button class="filter-btn px-6 py-2 border-2 border-gray-300 text-gray-700 hover:border-red-600 hover:text-red-600 transition uppercase text-sm font-bold" data-category="ropa">
+                                    Ropa
+                                </button>
+                                <button class="filter-btn px-6 py-2 border-2 border-gray-300 text-gray-700 hover:border-red-600 hover:text-red-600 transition uppercase text-sm font-bold" data-category="estatuas">
+                                    Estatuas retro
+                                </button>
+                                <button class="filter-btn px-6 py-2 border-2 border-gray-300 text-gray-700 hover:border-red-600 hover:text-red-600 transition uppercase text-sm font-bold" data-category="coleccionables">
+                                    Coleccionables
+                                </button>
+                                <button class="filter-btn px-6 py-2 border-2 border-gray-300 text-gray-700 hover:border-red-600 hover:text-red-600 transition uppercase text-sm font-bold" data-category="items">
+                                    Réplicas
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="max-w-7xl mx-auto px-4 py-20">
+                        <div id="products-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            <!-- Cargado dinámicamente -->
+                        </div>
+                        <div id="no-products" class="text-center text-gray-400 py-20 hidden">
+                            <p class="text-lg uppercase tracking-wider">No hay productos en esta categoría</p>
+                        </div>
+                    </section>
+                `;
+
+            await loadProducts();
+            setupFilterListeners();
+        }
+
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                allProducts = await response.json();
+                renderProducts(allProducts);
+            } catch (error) {
+                console.error('Error loading products:', error);
+                showNotification('Error al cargar productos', 'error');
+            }
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('products-grid');
+            const noProducts = document.getElementById('no-products');
+
+            if (products.length === 0) {
+                grid.innerHTML = '';
+                noProducts.classList.remove('hidden');
+                return;
+            }
+
+            noProducts.classList.add('hidden');
+            grid.innerHTML = products.map(p => renderProductCard(p)).join('');
+        }
+
+        function filterProducts(category) {
+            currentCategory = category;
+            if (category === 'todos') {
+                renderProducts(allProducts);
+            } else {
+                const filtered = allProducts.filter(p => p.category.toLowerCase() === category.toLowerCase());
+                renderProducts(filtered);
+            }
+        }
+
+        function setupFilterListeners() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('border-red-600', 'text-red-600', 'bg-red-600', 'text-white');
+                        b.classList.add('border-gray-300', 'text-gray-700');
+                    });
+                    e.target.classList.remove('border-gray-300', 'text-gray-700');
+                    e.target.classList.add('border-red-600', 'text-red-600');
+                    filterProducts(e.target.dataset.category);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadCatalogPage);
+    </script>
 </body>
 </html>
