@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiotStore.Shared", "RiotSto
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiotStore.API", "RiotStore.API\RiotStore.API.csproj", "{154552FD-545F-41BE-AE9F-37562BAE4B97}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiotStore.Consumer", "RiotStore.Consumer\RiotStore.Consumer.csproj", "{9D122E7C-F7D2-4630-8610-BB036FE7EB10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{154552FD-545F-41BE-AE9F-37562BAE4B97}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{154552FD-545F-41BE-AE9F-37562BAE4B97}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{154552FD-545F-41BE-AE9F-37562BAE4B97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D122E7C-F7D2-4630-8610-BB036FE7EB10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D122E7C-F7D2-4630-8610-BB036FE7EB10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D122E7C-F7D2-4630-8610-BB036FE7EB10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D122E7C-F7D2-4630-8610-BB036FE7EB10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
