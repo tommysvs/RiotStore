@@ -1,0 +1,6 @@
+@RiotStore.API_HostAddress = http://localhost:5023
+
+GET {{RiotStore.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
