@@ -1,5 +1,5 @@
 ﻿const CART_KEY = 'riotstore_cart';
-const API_BASE_URL = '/api'; // URL relativa - funciona automáticamente
+const API_BASE_URL = '/api';
 
 // Retrieves the cart from localStorage
 function getCart() {
@@ -22,6 +22,7 @@ function addToCart(product, quantity = 1) {
     } else {
         cart.push({
             product_id: product.product_id,
+            sku: product.sku,
             name: product.name,
             price: product.price,
             image_url: product.image_url,
