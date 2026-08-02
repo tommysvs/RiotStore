@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RiotStore.Shared.Events
 {
-    internal class StockUpdatedEvent
+    public class StockUpdatedEvent
     {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public int PreviousStock { get; set; }
+        public int NewStock { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }

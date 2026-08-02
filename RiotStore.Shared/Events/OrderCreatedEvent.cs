@@ -1,12 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RiotStore.Shared.Events
 {
-    internal class OrderCreatedEvent
+    public class OrderCreatedEvent
     {
+        public int OrderId { get; set; }
+        public int CustomerId { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public decimal TotalAmount { get; set; }
+        public List<OrderItemDto> Items { get; set; } = new();
+    }
+
+    public class OrderItemDto
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; } = null!;
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
     }
 }
