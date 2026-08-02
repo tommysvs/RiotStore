@@ -73,10 +73,10 @@ function renderFooter() {
     `;
 }
 
-// Render product card
+// Render Product Card
 function renderProductCard(product) {
     return `
-        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition flex flex-col h-full group cursor-pointer" onclick="navigateToProduct(${product.id})">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition flex flex-col h-full group cursor-pointer" onclick="navigateToProduct(${product.product_id})">
             <img src="${product.image_url || 'https://via.placeholder.com/300'}" 
                 alt="${product.name}" 
                 class="w-full h-48 object-contain">
@@ -115,7 +115,7 @@ function renderProductCard(product) {
     `;
 }
 
-// Navigate to product detail page
+// Navigate to Product Detail Page
 function navigateToProduct(productId) {
     window.location.href = `product.html?id=${productId}`;
 }
@@ -160,7 +160,7 @@ function showNotification(message, type = 'success', duration = 3000) {
     const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
 
     notification.innerHTML = `
-        <div class="${bgColor} text-white px-6 py-3 rounded shadow-lg fixed top-4 right-4 z-[9999]">
+        <div class="${bgColor} text-white px-6 py-3 rounded shadow-lg fixed top-20 right-4 z-[9999]">
             ${message}
         </div>
     `;

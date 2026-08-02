@@ -29,75 +29,65 @@
                 currentProduct = await response.json();
 
                 mainContent.innerHTML = `
-                            ${renderBreadcrumb([
+                                ${renderBreadcrumb([
                     { label: 'Inicio', href: 'index.html' },
                     { label: 'Catálogo', href: 'catalog.html' },
                     { label: currentProduct.name }
                 ])}
 
-                            <section class="max-w-7xl mx-auto px-4 py-12">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                    <div class="flex flex-col gap-4">
-                                        <div class="aspect-square bg-gray-100 border border-gray-200 overflow-hidden">
-                                            <img src="${currentProduct.image}" alt="${currentProduct.name}" class="w-full h-full object-cover">
-                                        </div>
-                                        <p id="stock-indicator" class="text-center text-sm font-semibold py-2 px-4 border-2 border-gray-200">
-                                            ${getStockLabel(currentProduct.stock)}
-                                        </p>
-                                    </div>
-
-                                    <div class="flex flex-col justify-start">
-                                        <p class="text-red-600 text-xs uppercase tracking-wider font-bold mb-4">${currentProduct.category}</p>
-                                        <h1 class="text-4xl font-black text-gray-900 uppercase tracking-tight mb-6">${currentProduct.name}</h1>
-                                        <p class="text-gray-600 text-lg leading-relaxed mb-8">${currentProduct.description}</p>
-
-                                        <div class="mb-8">
-                                            <p class="text-gray-700 uppercase text-sm tracking-wider mb-2 font-bold">Precio</p>
-                                            <p class="text-5xl font-black text-gray-900">${formatPrice(currentProduct.price)}</p>
+                                <section class="max-w-7xl mx-auto px-4 py-12">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                        <div class="flex flex-col gap-4">
+                                            <div class="aspect-square bg-gray-100 border border-gray-200 overflow-hidden">
+                                                <img src="${currentProduct.image_url || 'https://via.placeholder.com/300'}" alt="${currentProduct.name}" class="w-full h-full object-cover">
+                                            </div>
+                                            <p id="stock-indicator" class="text-center text-sm font-semibold py-2 px-4 border-2 border-gray-200">
+                                                Stock disponible
+                                            </p>
                                         </div>
 
-                                        <div class="mb-8">
-                                            <p class="text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Cantidad</p>
-                                            <div class="flex gap-4 items-center">
-                                                <button id="qty-minus" class="w-12 h-12 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition font-bold text-xl">−</button>
-                                                <input id="qty-input" type="number" min="1" value="1" class="w-20 h-12 bg-white border-2 border-gray-300 text-center text-lg font-bold text-red-600">
-                                                <button id="qty-plus" class="w-12 h-12 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition font-bold text-xl">+</button>
+                                        <div class="flex flex-col justify-start">
+                                            <p class="text-red-600 text-xs uppercase tracking-wider font-bold mb-4">${currentProduct.sku}</p>
+                                            <h1 class="text-4xl font-black text-gray-900 uppercase tracking-tight mb-6">${currentProduct.name}</h1>
+                                            <p class="text-gray-600 text-lg leading-relaxed mb-8">${currentProduct.description}</p>
+
+                                            <div class="mb-8">
+                                                <p class="text-gray-700 uppercase text-sm tracking-wider mb-2 font-bold">Precio</p>
+                                                <p class="text-5xl font-black text-gray-900">$${parseFloat(currentProduct.price).toFixed(2)}</p>
+                                            </div>
+
+                                            <div class="mb-8">
+                                                <p class="text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Cantidad</p>
+                                                <div class="flex gap-4 items-center">
+                                                    <button id="qty-minus" class="w-12 h-12 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition font-bold text-xl">−</button>
+                                                    <input id="qty-input" type="number" min="1" value="1" class="w-20 h-12 bg-white border-2 border-gray-300 text-center text-lg font-bold text-red-600">
+                                                    <button id="qty-plus" class="w-12 h-12 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition font-bold text-xl">+</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex gap-4">
+                                                <button id="btn-add-cart" class="flex-1 px-6 py-4 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition border-2 border-red-600">
+                                                    Añadir al Carrito
+                                                </button>
+                                                <button id="btn-buy-now" class="flex-1 px-6 py-4 bg-gray-900 text-white font-bold uppercase tracking-widest hover:bg-black transition border-2 border-gray-900">
+                                                    Comprar Ahora
+                                                </button>
+                                            </div>
+
+                                            <div class="mt-12 pt-8 border-t-2 border-gray-200">
+                                                <p class="text-gray-600 text-sm mb-4">
+                                                    <span class="block font-bold text-red-600 mb-2">ENVÍO GRATUITO</span>
+                                                    En compras mayores a $50 USD
+                                                </p>
+                                                <p class="text-gray-600 text-sm">
+                                                    <span class="block font-bold text-red-600 mb-2">GARANTÍA 30 DÍAS</span>
+                                                    Devoluciones sin complicaciones
+                                                </p>
                                             </div>
                                         </div>
-
-                                        <div class="flex gap-4">
-                                            <button id="btn-add-cart" class="flex-1 px-6 py-4 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition border-2 border-red-600">
-                                                Añadir al Carrito
-                                            </button>
-                                            <button id="btn-buy-now" class="flex-1 px-6 py-4 bg-gray-900 text-white font-bold uppercase tracking-widest hover:bg-black transition border-2 border-gray-900">
-                                                Comprar Ahora
-                                            </button>
-                                        </div>
-
-                                        <div class="mt-12 pt-8 border-t-2 border-gray-200">
-                                            <p class="text-gray-600 text-sm mb-4">
-                                                <span class="block font-bold text-red-600 mb-2">ENVÍO GRATUITO</span>
-                                                En compras mayores a $50 USD
-                                            </p>
-                                            <p class="text-gray-600 text-sm">
-                                                <span class="block font-bold text-red-600 mb-2">GARANTÍA 30 DÍAS</span>
-                                                Devoluciones sin complicaciones
-                                            </p>
-                                        </div>
                                     </div>
-                                </div>
-                            </section>
-
-                            <section class="max-w-7xl mx-auto px-4 py-20">
-                                <div class="mb-16">
-                                    <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">Productos Relacionados</h2>
-                                    <div class="w-16 h-1 bg-red-600"></div>
-                                </div>
-                                <div id="related-products" class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <!-- Cargado dinámicamente -->
-                                </div>
-                            </section>
-                        `;
+                                </section>
+                            `;
 
                 document.getElementById('qty-minus').addEventListener('click', () => {
                     const input = document.getElementById('qty-input');
@@ -120,7 +110,7 @@
                     window.location.href = 'cart.html';
                 });
 
-                await loadRelatedProducts(currentProduct.category);
+                await loadRelatedProducts(currentProduct.category_id);
             } catch (error) {
                 console.error('Error loading product:', error);
                 mainContent.innerHTML = '<div class="text-center py-20 text-red-600"><p>Producto no encontrado</p></div>';
@@ -129,11 +119,11 @@
             updateCartBadge();
         }
 
-        async function loadRelatedProducts(category) {
+        async function loadRelatedProducts(categoryId) {
             try {
-                const response = await fetch(`/api/products?category=${category}&limit=4`);
+                const response = await fetch(`/api/products/category/${categoryId}`);
                 const products = await response.json();
-                const filtered = products.filter(p => p.id !== productId);
+                const filtered = products.filter(p => p.product_id !== parseInt(productId));
                 const container = document.getElementById('related-products');
                 container.innerHTML = filtered.slice(0, 4).map(p => renderProductCard(p)).join('');
             } catch (error) {
