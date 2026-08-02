@@ -76,23 +76,51 @@ function renderFooter() {
 }
 
 // Render Product Card
+// Render Product Card
 function renderProductCard(product) {
     return `
-        <div class="bg-white border border-gray-200 hover:shadow-lg transition overflow-hidden group">
-            <div class="aspect-square bg-gray-100 overflow-hidden">
-                <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-            </div>
-            <div class="p-5">
-                <p class="text-red-600 text-xs uppercase tracking-wider font-bold mb-2">${product.category}</p>
-                <h3 class="text-base font-bold text-gray-900 uppercase mb-3 line-clamp-2 h-12">${product.name}</h3>
-                <p class="text-2xl font-black text-gray-900 mb-3">${formatPrice(product.price)}</p>
-                <p class="text-xs text-gray-600 mb-4 font-medium">${getStockLabel(product.stock)}</p>
-                <a href="product.html?id=${product.id}" class="block w-full py-2 bg-red-600 text-white text-center font-bold uppercase tracking-wide text-sm hover:bg-amber-500 hover:text-black transition">
-                    Ver detalle
-                </a>
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition flex flex-col h-full group cursor-pointer" onclick="navigateToProduct(${product.id})">
+            <img src="${product.image_url || 'https://via.placeholder.com/300'}" 
+                alt="${product.name}" 
+                class="w-full h-48 object-contain">
+
+            <div class="p-4 flex flex-col flex-grow">
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+                    ${product.description || 'Sin descripción'}
+                </p>
+
+                <div class="mt-auto">
+                    <div class="flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <h3 class="text-sm font-bold text-gray-900 line-clamp-2">
+                                ${product.name}
+                            </h3>
+                            <span class="text-lg font-bold text-red-600">
+                                $${parseFloat(product.price).toFixed(2)}
+                            </span>
+                        </div>
+
+                        <button 
+                            onclick="addToCart(${JSON.stringify(product).replace(/"/g, '&quot;')}, 1); event.stopPropagation();" 
+                            class="opacity-0 group-hover:opacity-100 transition duration-200 bg-red-600 text-white p-2 rounded-full hover:bg-red-700">
+                            
+                            <svg xmlns="http://www.w3.org/2000/svg" 
+                                fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
+                                class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" 
+                                    d="M2.25 3h1.386c.51 0 .955.343 1.087.835L5.76 8.25m0 0h12.49c.718 0 1.262.674 1.108 1.375l-1.5 6A1.125 1.125 0 0116.77 16.5H8.23a1.125 1.125 0 01-1.088-.875L5.76 8.25zm0 0L4.5 4.5m4.5 12a.75.75 0 100 1.5.75.75 0 000-1.5zm7.5 0a.75.75 0 100 1.5.75.75 0 000-1.5z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
+}
+
+// Navigate to Product Detail Page
+function navigateToProduct(productId) {
+    window.location.href = `product.html?id=${productId}`;
 }
 
 // Render Breadcrumb

@@ -1,5 +1,5 @@
-﻿// Shared utilities for the entire application
-const CART_KEY = 'riotstore_cart';
+﻿const CART_KEY = 'riotstore_cart';
+const API_BASE_URL = '/api'; // URL relativa - funciona automáticamente
 
 // Retrieves the cart from localStorage
 function getCart() {
@@ -10,24 +10,27 @@ function getCart() {
 // Saves the cart to localStorage
 function saveCart(cart) {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    updateCartBadge();
 }
 
 // Adds a product to the cart
 function addToCart(product, quantity = 1) {
     const cart = getCart();
-    const existingItem = cart.find(item => item.id === product.id);
+    const existingItem = cart.find(item => item.product_id === product.product_id);
 
     if (existingItem) {
         existingItem.quantity += quantity;
     } else {
         cart.push({
-            ...product,
+            product_id: product.product_id,
+            name: product.name,
+            price: product.price,
+            image_url: product.image_url,
             quantity: quantity
         });
     }
 
     saveCart(cart);
+    updateCartBadge();
 }
 
 // Removes a product from the cart
@@ -35,14 +38,18 @@ function removeFromCart(index) {
     const cart = getCart();
     cart.splice(index, 1);
     saveCart(cart);
+    updateCartBadge();
 }
 
 // Updates the quantity of a product in the cart
 function updateQuantity(index, quantity) {
     const cart = getCart();
-    if (cart[index]) {
-        cart[index].quantity = Math.max(1, quantity);
+    if (quantity <= 0) {
+        removeFromCart(index);
+    } else {
+        cart[index].quantity = quantity;
         saveCart(cart);
+        updateCartBadge();
     }
 }
 
@@ -57,9 +64,7 @@ function updateCartBadge() {
     const cart = getCart();
     const badge = document.getElementById('cart-badge');
     if (badge) {
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-        badge.textContent = totalItems;
-        badge.style.display = totalItems > 0 ? 'flex' : 'none';
+        badge.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
     }
 }
 
@@ -73,20 +78,47 @@ function formatPrice(price) {
 
 // Returns the stock label based on quantity
 function getStockLabel(stock) {
-    if (stock <= 0) return 'Out of Stock / Oversold';
-    if (stock <= 5) return `Only ${stock} left`;
-    return 'Available';
+    if (stock > 10) return 'En Stock';
+    if (stock > 0) return 'Pocas Unidades';
+    return 'Agotado';
 }
 
 // Returns CSS classes for the stock indicator
 function getStockClass(stock) {
-    let baseClasses = 'text-center py-2 px-4 border-2 uppercase font-semibold text-sm tracking-wider';
+    if (stock > 10) return 'bg-green-100 text-green-800';
+    if (stock > 0) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
+}
 
-    if (stock <= 0) {
-        return baseClasses + ' border-red-600 text-red-400 bg-red-950';
-    } else if (stock <= 5) {
-        return baseClasses + ' border-yellow-600 text-yellow-400 bg-yellow-950';
-    } else {
-        return baseClasses + ' border-green-600 text-green-400 bg-green-950';
+// Fetch products from API
+async function fetchProducts() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/products`);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        return [];
+    }
+}
+
+// Fetch categories from API
+async function fetchCategories() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/products/categories`);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+    }
+}
+
+// Fetch products by category
+async function fetchProductsByCategory(categoryId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/products/category/${categoryId}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        return [];
     }
 }
