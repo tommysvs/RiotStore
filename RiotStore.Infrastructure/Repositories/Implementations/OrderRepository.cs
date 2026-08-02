@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RiotStore.Infrastructure.Data;
+using RiotStore.Infrastructure.Repositories.Interfaces;
 
 namespace RiotStore.Infrastructure.Repositories.Implementations
 {
-    internal class OrderRepository
+    public class OrderRepository : IOrderRepository
     {
+        private readonly RiotStoreDbContext _context;
+
+        public OrderRepository(RiotStoreDbContext context)
+        {
+            _context = context;
+        }
     }
 }

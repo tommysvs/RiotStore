@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RiotStore.Infrastructure.Data;
 
 namespace RiotStore.Infrastructure.Repositories.Interfaces
 {
-    internal interface IStockRepository
+    public interface IStockRepository
     {
+        Task<StockBalance?> GetByProductIdAsync(int productId);
+        Task<List<StockBalance>> GetAllAsync();
+        Task<StockBalance> UpdateOrCreateAsync(int productId, int initialStock, int totalAttempts, int currentBalance);
     }
 }
