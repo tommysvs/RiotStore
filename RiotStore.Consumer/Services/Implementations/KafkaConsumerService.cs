@@ -8,16 +8,16 @@ namespace RiotStore.Consumer.Services.Implementations
     public class KafkaConsumerService : IKafkaConsumerService
     {
         private readonly IConfiguration _configuration;
-        private readonly IOrderProcessingService _orderProcessingService;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<KafkaConsumerService> _logger;
 
         public KafkaConsumerService(
             IConfiguration configuration,
-            IOrderProcessingService orderProcessingService,
+            IServiceScopeFactory serviceScopeFactory,
             ILogger<KafkaConsumerService> logger)
         {
             _configuration = configuration;
-            _orderProcessingService = orderProcessingService;
+            _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
         }
 
@@ -45,7 +45,12 @@ namespace RiotStore.Consumer.Services.Implementations
                         {
                             _logger.LogInformation($"Evento recibido: {message.Value}");
                             var orderEvent = JsonSerializer.Deserialize<OrderCreatedEvent>(message.Value);
-                            await _orderProcessingService.ProcessOrderAsync(orderEvent);
+                            
+                            using (var scope = _serviceScopeFactory.CreateScope())
+                            {
+                                var orderProcessingService = scope.ServiceProvider.GetRequiredService<IOrderProcessingService>();
+                                await orderProcessingService.ProcessOrderAsync(orderEvent);
+                            }
                         }
                     }
                     catch (OperationCanceledException)

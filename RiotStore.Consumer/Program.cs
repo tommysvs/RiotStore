@@ -17,8 +17,8 @@ builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 // Services
-builder.Services.AddScoped<IKafkaConsumerService, KafkaConsumerService>();
 builder.Services.AddScoped<IOrderProcessingService, OrderProcessingService>();
+builder.Services.AddSingleton<IKafkaConsumerService, KafkaConsumerService>();
 
 // Workers
 builder.Services.AddHostedService<OrderProcessingWorker>();
