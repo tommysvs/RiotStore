@@ -2,9 +2,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Riot Merch</title>
+    <title>Simulador - Riot Merch</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css">
+    <link rel="icon" type="image/x-icon" href="/assets/img/favicon.ico" />
 </head>
 <body class="bg-white text-gray-900 font-sans">
     <nav id="navbar-container" class="bg-black sticky top-0 z-50 shadow-md"></nav>
@@ -21,13 +22,8 @@
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = `
                         <section class="max-w-4xl mx-auto px-4 py-12">
-                            <div class="bg-red-50 border-2 border-red-300 p-6 mb-8">
-                                <p class="text-red-700 uppercase tracking-wider font-bold" Vista de Administración Técnica</p>
-                                <p class="text-red-600 text-sm mt-2">Esta sección es para pruebas del sistema. No se debe acceder desde producción.</p>
-                            </div>
-
                             <div class="bg-gray-50 border-2 border-gray-300 p-8">
-                                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-8">Simulador de Tráfico Flash Sale</h2>
+                                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-8">Simulador de tráfico para Flash Sale</h2>
 
                                 <form id="traffic-form" class="space-y-8">
                                     <div>
@@ -100,10 +96,10 @@
                             <div class="bg-gray-50 border-2 border-gray-300 p-8 mt-12">
                                 <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight mb-6">Información Técnica</h3>
                                 <div class="space-y-4 text-sm text-gray-700">
-                                    <p><span class="text-red-600 font-bold">Endpoint:</span> POST /api/generator/batch</p>
+                                    <p><span class="text-red-600 font-bold">Endpoint:</span> POST /api/simulator/batch-metrics</p>
                                     <p><span class="text-red-600 font-bold">Body esperado:</span> { productId, quantity, batchCount }</p>
-                                    <p><span class="text-red-600 font-bold">Respuesta:</span> JSON con metrics de ejecución</p>
-                                    <p class="mt-6 text-gray-600">Este simulador envía peticiones masivas al backend para probar el rendimiento ante picos de tráfico.</p>
+                                    <p><span class="text-red-600 font-bold">Respuesta:</span> { totalRequests, successCount, failureCount, startedAt, completedAt }</p>
+                                    <p class="mt-6 text-gray-600">Este simulador envía peticiones masivas al backend para probar el rendimiento ante picos de tráfico durante flash sales.</p>
                                 </div>
                             </div>
                         </section>
@@ -139,7 +135,7 @@
             document.getElementById('traffic-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
 
-                const productId = document.getElementById('product-select').value;
+                const productId = parseInt(document.getElementById('product-select').value);
                 const batchSize = parseInt(document.getElementById('batch-size').value);
                 const burstCount = parseInt(document.getElementById('burst-count').value);
                 const burstInterval = parseInt(document.getElementById('burst-interval').value);
@@ -159,7 +155,7 @@
 
                 for (let burst = 0; burst < burstCount; burst++) {
                     try {
-                        const response = await fetch('/api/generator/batch', {
+                        const response = await fetch('/api/simulator/batch-metrics', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -169,18 +165,23 @@
                             })
                         });
 
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
                         const result = await response.json();
-                        totalSent += batchSize;
-                        totalSuccess += result.successCount || batchSize;
+                        totalSent += result.totalRequests || batchSize;
+                        totalSuccess += result.successCount || 0;
                         totalFailed += result.failureCount || 0;
                     } catch (error) {
+                        console.error('Error en ráfaga:', error);
                         totalFailed += batchSize;
                     }
 
                     document.getElementById('bursts-completed').textContent = `${burst + 1} / ${burstCount}`;
-                    document.getElementById('requests-sent').textContent = totalSent;
-                    document.getElementById('requests-success').textContent = totalSuccess;
-                    document.getElementById('requests-failed').textContent = totalFailed;
+                    document.getElementById('requests-sent').textContent = totalSent.toLocaleString();
+                    document.getElementById('requests-success').textContent = totalSuccess.toLocaleString();
+                    document.getElementById('requests-failed').textContent = totalFailed.toLocaleString();
 
                     if (burst < burstCount - 1) {
                         await new Promise(resolve => setTimeout(resolve, burstInterval));
