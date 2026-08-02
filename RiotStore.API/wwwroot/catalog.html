@@ -28,42 +28,55 @@
             console.log('Categorías cargadas:', categories);
 
             let categoriesHTML = categories.map(cat => `
-                    <button class="filter-btn px-6 py-2 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition uppercase text-sm font-bold" data-category="${cat.category_id}">
-                        ${cat.name}
-                    </button>
-                `).join('');
+                <button class="filter-btn px-6 py-2 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition uppercase text-sm font-bold" data-category="${cat.category_id}">
+                    ${cat.name}
+                </button>
+            `).join('');
 
             let productsHTML = allProducts.map(product => renderProductCard(product)).join('');
 
             mainContent.innerHTML = `
-                    <section class="bg-gray-50 border-b border-gray-200 py-6">
-                        <div class="max-w-7xl mx-auto px-4">
-                            <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-6">Filtrar por Categoría</h2>
-                            <div class="flex gap-3 flex-wrap">
-                                <button class="filter-btn px-6 py-2 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition uppercase text-sm font-bold active" data-category="todos">
-                                    Todos
-                                </button>
-                                ${categoriesHTML}
-                            </div>
+                <section class="bg-gray-50 border-b border-gray-200 py-6">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-6">Filtrar por Categoría</h2>
+                        <div class="flex gap-3 flex-wrap">
+                            <button class="filter-btn px-6 py-2 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition uppercase text-sm font-bold active" data-category="todos">
+                                Todos
+                            </button>
+                            ${categoriesHTML}
                         </div>
-                    </section>
+                    </div>
+                </section>
 
-                    <section class="max-w-7xl mx-auto px-4 py-12">
-                        <h1 class="text-4xl font-black text-red-600 uppercase tracking-tight mb-8">Catálogo de Productos</h1>
-                        <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            ${productsHTML}
-                        </div>
-                    </section>
-                `;
+                <section class="max-w-7xl mx-auto px-4 py-12">
+                    <h1 class="text-4xl font-black text-red-600 uppercase tracking-tight mb-8">Catálogo de Productos</h1>
+                    <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        ${productsHTML}
+                    </div>
+                </section>
+            `;
 
-            // Filtros
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'bg-red-600', 'text-white'));
-                    e.target.classList.add('active', 'bg-red-600', 'text-white');
+                    const target = e.currentTarget;
+                    const isActive = target.classList.contains('active');
+
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('active', 'bg-red-600', 'text-white');
+                        b.classList.add('text-red-600');
+                    });
+
+                    const productsGrid = document.getElementById('products-grid');
+
+                    if (isActive) {
+                        productsGrid.innerHTML = allProducts.map(p => renderProductCard(p)).join('');
+                        return;
+                    }
+
+                    target.classList.add('active', 'bg-red-600', 'text-white');
+                    target.classList.remove('text-red-600');
 
                     const categoryId = e.target.dataset.category;
-                    const productsGrid = document.getElementById('products-grid');
 
                     if (categoryId === 'todos') {
                         productsGrid.innerHTML = allProducts.map(p => renderProductCard(p)).join('');
