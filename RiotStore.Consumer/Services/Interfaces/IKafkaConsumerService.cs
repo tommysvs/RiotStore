@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RiotStore.Shared.Events;
 
 namespace RiotStore.Consumer.Services.Interfaces
 {
-    internal class IKafkaConsumerService
+    public interface IKafkaConsumerService
     {
+        Task StartConsumingAsync(CancellationToken cancellationToken);
     }
 }

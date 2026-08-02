@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RiotStore.Shared.Events;
 
 namespace RiotStore.Consumer.Services.Interfaces
 {
-    internal class IOrderProcessingService
+    public interface IOrderProcessingService
     {
+        Task ProcessOrderAsync(OrderCreatedEvent orderEvent);
     }
 }

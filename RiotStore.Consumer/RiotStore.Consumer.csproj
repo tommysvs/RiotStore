@@ -11,4 +11,9 @@
     <PackageReference Include="Confluent.Kafka" Version="2.15.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RiotStore.Infrastructure\RiotStore.Infrastructure.csproj" />
+    <ProjectReference Include="..\RiotStore.Shared\RiotStore.Shared.csproj" />
+  </ItemGroup>
 </Project>
