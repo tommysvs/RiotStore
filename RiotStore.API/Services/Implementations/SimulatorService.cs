@@ -1,5 +1,6 @@
 ﻿using RiotStore.API.Services.Interfaces;
 using RiotStore.Shared.Events;
+using RiotStore.Shared.Dtos;
 
 namespace RiotStore.API.Services.Implementations
 {
@@ -72,7 +73,7 @@ namespace RiotStore.API.Services.Implementations
                 {
                     for (int j = 0; j < quantity; j++)
                     {
-                        tasks.Add(SimulatePurchaseAttemptAsync(productId, product.Name, 1));
+                        tasks.Add(SimulatePurchaseAttemptAsync(productId, product.name, 1));
                     }
                 }
 

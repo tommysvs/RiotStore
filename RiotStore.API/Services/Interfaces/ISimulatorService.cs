@@ -1,4 +1,4 @@
-﻿using RiotStore.Shared.Events;
+﻿using RiotStore.Shared.Dtos;
 
 namespace RiotStore.API.Services.Interfaces
 {
@@ -6,5 +6,6 @@ namespace RiotStore.API.Services.Interfaces
     {
         Task SimulatePurchaseAttemptAsync(int productId, string productName, int quantity);
         Task SimulateBatchPurchaseAsync(List<(int productId, string productName, int quantity)> purchases);
+        Task<SimulationMetricsDto> SimulateBatchWithMetricsAsync(int productId, int quantity, int batchCount);
     }
 }

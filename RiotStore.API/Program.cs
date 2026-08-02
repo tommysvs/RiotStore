@@ -32,6 +32,7 @@ builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 // Services
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IKafkaProducerService, KafkaProducerService>();
 builder.Services.AddScoped<ISimulatorService, SimulatorService>();
 
