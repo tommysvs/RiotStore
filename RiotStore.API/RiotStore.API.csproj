@@ -7,12 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" Version="2.15.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\assets\img\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RiotStore.Infrastructure\RiotStore.Infrastructure.csproj" />
+    <ProjectReference Include="..\RiotStore.Shared\RiotStore.Shared.csproj" />
   </ItemGroup>
 
 </Project>
