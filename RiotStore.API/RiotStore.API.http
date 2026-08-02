@@ -1,6 +1,9 @@
-@RiotStore.API_HostAddress = http://localhost:5023
+@RiotStore.API_HostAddress = https://localhost:7034
 
-GET {{RiotStore.API_HostAddress}}/weatherforecast/
+### Get all products
+GET {{RiotStore.API_HostAddress}}/api/products
 Accept: application/json
 
-###
+### Get product by ID
+GET {{RiotStore.API_HostAddress}}/api/products/1
+Accept: application/json
