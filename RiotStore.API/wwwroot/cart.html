@@ -46,7 +46,7 @@
                                             <span id="subtotal" class="font-bold text-gray-900">$0.00</span>
                                         </div>
                                         <div class="flex justify-between">
-                                            <span class="text-gray-600 uppercase text-sm tracking-wider">Impuestos (10%)</span>
+                                            <span class="text-gray-600 uppercase text-sm tracking-wider">Impuestos (15%)</span>
                                             <span id="taxes" class="font-bold text-gray-900">$0.00</span>
                                         </div>
                                         <div class="flex justify-between">
@@ -141,7 +141,7 @@
 
         function updateTotals(cart) {
             const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const taxes = subtotal * 0.1;
+            const taxes = subtotal * 0.15;
             const total = subtotal + taxes;
 
             document.getElementById('subtotal').textContent = formatPrice(subtotal);
