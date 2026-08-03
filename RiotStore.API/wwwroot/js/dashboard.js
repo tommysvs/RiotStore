@@ -2,6 +2,7 @@
 const dashboardState = {
     products: [],
     benchmarks: [],
+    purchaseAttemptsSummary: null,
     refreshInterval: 2000
 };
 
@@ -38,7 +39,7 @@ function updateCurrentTime() {
 // Load all dashboard data
 async function loadDashboardData() {
     try {
-        const [stocks, benchmarks] = await Promise.all([
+        const [stocks, benchmarks, purchaseAttempts] = await Promise.all([
             fetch('/api/dashboard/stock').then(r => {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 return r.json();
@@ -46,15 +47,21 @@ async function loadDashboardData() {
             fetch('/api/dashboard/benchmarks').then(r => {
                 if (!r.ok) return [];
                 return r.json();
-            }).catch(() => [])
+            }).catch(() => []),
+            fetch('/api/dashboard/purchase-attempts/summary').then(r => {
+                if (!r.ok) return null;
+                return r.json();
+            }).catch(() => null)
         ]);
 
         dashboardState.products = Array.isArray(stocks) ? stocks : [];
         dashboardState.benchmarks = Array.isArray(benchmarks) ? benchmarks : [];
+        dashboardState.purchaseAttemptsSummary = purchaseAttempts;
 
         updateMetrics();
         updateSegmentation();
         updateBenchmarks();
+        updatePurchaseAttemptsSummary();
         updateCategoryDistribution();
         updateProductsTable();
         updateLastRefreshTime();
@@ -105,6 +112,22 @@ function updateBenchmarks() {
     document.getElementById('stat-elapsed-seconds').textContent = (latest.elapsed_seconds || 0).toFixed(2);
 }
 
+// Update purchase attempts summary
+function updatePurchaseAttemptsSummary() {
+    if (!dashboardState.purchaseAttemptsSummary) {
+        document.getElementById('stat-total-purchase-attempts').textContent = '0';
+        document.getElementById('stat-successful-attempts').textContent = '0';
+        document.getElementById('stat-failed-attempts').textContent = '0';
+        return;
+    }
+
+    const summary = dashboardState.purchaseAttemptsSummary;
+
+    document.getElementById('stat-total-purchase-attempts').textContent = (summary.totalAttempts || 0).toLocaleString();
+    document.getElementById('stat-successful-attempts').textContent = (summary.successfulAttempts || 0).toLocaleString();
+    document.getElementById('stat-failed-attempts').textContent = (summary.failedAttempts || 0).toLocaleString();
+}
+
 // Update category distribution
 function updateCategoryDistribution() {
     const byCategory = {};
@@ -151,29 +174,38 @@ function updateProductsTable() {
             ? ((stock.currentBalance / stock.initialStock) * 100).toFixed(1)
             : 0;
 
-        const statusBadge = stock.currentBalance > 0
-            ? `<span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">Disponible</span>`
-            : stock.currentBalance === 0
-                ? `<span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">Agotado</span>`
-                : `<span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">Sobreventa</span>`;
+        const conversionRate = stock.totalAttempts > 0
+            ? ((stock.soldUnits / stock.totalAttempts) * 100).toFixed(1)
+            : 0;
+
+        let status = 'OK', statusClass = 'bg-green-100 text-green-700';
+        if (stock.currentBalance < 0) {
+            status = 'SOBREVENTA';
+            statusClass = 'bg-red-100 text-red-700';
+        } else if (stock.currentBalance === 0) {
+            status = 'AGOTADO';
+            statusClass = 'bg-orange-100 text-orange-700';
+        } else if (stock.currentBalance <= 10) {
+            status = 'BAJO';
+            statusClass = 'bg-yellow-100 text-yellow-700';
+        }
+
+        const balanceClass = stock.currentBalance < 0 ? 'text-red-600 font-bold' :
+            stock.currentBalance === 0 ? 'text-orange-600 font-bold' : 'text-green-600 font-bold';
 
         return `
-            <tr class="border-b border-gray-200 hover:bg-gray-50">
-                <td class="px-6 py-4 font-medium text-gray-900">${stock.productName}</td>
-                <td class="px-6 py-4 text-gray-600">${stock.productSku}</td>
-                <td class="px-6 py-4 text-gray-600">${stock.categoryName}</td>
-                <td class="px-6 py-4 text-right text-gray-900">${stock.initialStock.toLocaleString()}</td>
-                <td class="px-6 py-4 text-right text-gray-900">${stock.totalAttempts.toLocaleString()}</td>
-                <td class="px-6 py-4 text-right text-gray-900">${stock.soldUnits.toLocaleString()}</td>
-                <td class="px-6 py-4 text-right text-gray-900">${stock.currentBalance.toLocaleString()}</td>
-                <td class="px-6 py-4 text-center">
-                    <span class="text-sm font-semibold text-gray-900">${percentageAvailable}%</span>
-                </td>
-                <td class="px-6 py-4 text-center">
-                    <span class="text-sm font-semibold text-gray-900">${stock.conversionRate.toFixed(2)}%</span>
-                </td>
-                <td class="px-6 py-4 text-center">
-                    ${statusBadge}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-3 text-sm font-medium text-gray-900">${stock.productName}</td>
+                <td class="px-6 py-3 text-sm text-gray-600">${stock.productSku}</td>
+                <td class="px-6 py-3 text-sm text-gray-600">${stock.categoryName}</td>
+                <td class="px-6 py-3 text-right text-sm text-gray-900">${stock.initialStock.toLocaleString()}</td>
+                <td class="px-6 py-3 text-right text-sm font-semibold text-gray-900">${(stock.totalAttempts || 0).toLocaleString()}</td>
+                <td class="px-6 py-3 text-right text-sm text-gray-900">${(stock.soldUnits || 0).toLocaleString()}</td>
+                <td class="px-6 py-3 text-right text-sm font-bold ${balanceClass}">${stock.currentBalance.toLocaleString()}</td>
+                <td class="px-6 py-3 text-center text-sm text-gray-900">${percentageAvailable}%</td>
+                <td class="px-6 py-3 text-center text-sm text-gray-900">${conversionRate}%</td>
+                <td class="px-6 py-3 text-center">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">${status}</span>
                 </td>
             </tr>
         `;
@@ -182,6 +214,7 @@ function updateProductsTable() {
     tbody.innerHTML = rows;
 }
 
+// Update last refresh time
 function updateLastRefreshTime() {
     const now = new Date();
     const timeString = now.toLocaleTimeString('es-ES');
