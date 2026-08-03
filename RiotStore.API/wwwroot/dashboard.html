@@ -1,10 +1,129 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <meta charset="utf-8" />
-    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Monitoreo de stock en tiempo real</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/custom.css">
+    <link rel="icon" type="image/x-icon" href="/assets/img/favicon.ico" />
 </head>
-<body>
+<body class="bg-gray-50">
+    <nav id="navbar-container" class="bg-black sticky top-0 z-50 shadow-md"></nav>
+    <div class="min-h-screen">
+        <header>
+            <div class="max-w-7xl mx-auto px-6 py-10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-4xl font-black text-red-600 uppercase tracking-tight">Dashboard de stock en tiempo real</h1>
+                    </div>
+                    <div class="text-right">
+                        <div id="current-time" class="text-2xl font-bold"></div>
+                        <div class="text-sm text-gray-700 mt-1">Última actualización: <span id="last-refresh"></span></div>
+                    </div>
+                </div>
+            </div>
+        </header>
 
+        <main class="max-w-7xl mx-auto px-6 py-2">
+            <section class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Estadísticas globales</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="dashboard-metric-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="dashboard-metric-label">Inventario total</div>
+                                <div class="dashboard-metric-value" id="stat-total-inventory">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-metric-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="dashboard-metric-label">Intentos de compra</div>
+                                <div class="dashboard-metric-value" id="stat-total-attempts">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-metric-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="dashboard-metric-label">Tasa de conversión</div>
+                                <div class="dashboard-metric-value" id="stat-conversion-rate">0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-metric-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="dashboard-metric-label">Sobreventa global</div>
+                                <div class="dashboard-metric-value text-red-600" id="stat-overselling">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                    <div class="dashboard-metric-card">
+                        <div class="dashboard-metric-label">Stock disponible</div>
+                        <div class="dashboard-metric-value text-green-600" id="stat-available-products">0</div>
+                    </div>
+                    <div class="dashboard-metric-card">
+                        <div class="dashboard-metric-label">Stock bajo</div>
+                        <div class="dashboard-metric-value text-yellow-600" id="stat-low-stock">0</div>
+                    </div>
+                    <div class="dashboard-metric-card">
+                        <div class="dashboard-metric-label">Agotados</div>
+                        <div class="dashboard-metric-value text-orange-600" id="stat-exhausted">0</div>
+                    </div>
+                    <div class="dashboard-metric-card">
+                        <div class="dashboard-metric-label">Sobreventa</div>
+                        <div class="dashboard-metric-value text-red-600" id="stat-oversold-products">0</div>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Balance de stock por producto</h2>
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-100 border-b-2 border-gray-300">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Producto</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">SKU</th>
+                                    <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">Stock inicial</th>
+                                    <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">Intentos</th>
+                                    <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">Vendidos</th>
+                                    <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">Balance actual</th>
+                                    <th class="px-6 py-4 text-center text-sm font-semibold text-gray-700">Disponible</th>
+                                    <th class="px-6 py-4 text-center text-sm font-semibold text-gray-700">Conv. Rate</th>
+                                    <th class="px-6 py-4 text-center text-sm font-semibold text-gray-700">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-tbody" class="divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="9" class="px-6 py-12 text-center text-gray-500">
+                                        <div class="animate-spin inline-block w-6 h-6 border-3 border-current border-t-transparent rounded-full"></div>
+                                        <p class="mt-2">Cargando datos...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer id="booter-container" class="bg-black mt-20"></footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>

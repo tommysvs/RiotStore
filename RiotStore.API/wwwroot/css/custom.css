@@ -41,3 +41,65 @@ input:focus, select:focus {
         font-size: 1.875rem;
     }
 }
+
+/*** Dashboard ***/ 
+.dashboard-pulse {
+    animation: dashboard-pulse 2s infinite;
+}
+
+@keyframes dashboard-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.dashboard-status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.dashboard-status-available {
+    background-color: rgb(220, 252, 231);
+    color: rgb(22, 101, 52);
+}
+
+.dashboard-status-low {
+    background-color: rgb(254, 243, 199);
+    color: rgb(113, 63, 18);
+}
+
+.dashboard-status-exhausted {
+    background-color: rgb(254, 226, 226);
+    color: rgb(127, 29, 29);
+}
+
+.dashboard-status-oversold {
+    background-color: rgb(239, 68, 68);
+    color: white;
+    animation: dashboard-pulse 2s infinite;
+}
+
+.dashboard-metric-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-metric-value {
+    font-size: 1.875rem;
+    font-weight: bold;
+    color: #1f2937;
+}
+
+.dashboard-metric-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
