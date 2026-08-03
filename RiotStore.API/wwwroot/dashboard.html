@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="css/custom.css">
     <link rel="icon" type="image/x-icon" href="/assets/img/favicon.ico" />
 </head>
-<body class="bg-gray-50">
+<body class="">
     <nav id="navbar-container" class="bg-black sticky top-0 z-50 shadow-md"></nav>
     
     <div class="min-h-screen">
         <header>
-            <div class="max-w-7xl mx-auto px-6 py-8">
+            <div class="max-w-7xl mx-auto px-6 py-12">
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-4xl font-black text-red-600 uppercase tracking-tight">Dashboard en tiempo real</h1>
@@ -30,25 +30,25 @@
         <main class="max-w-7xl mx-auto px-6 py-8">
             <section class="mb-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div class="bg-gray-50 rounded-lg shadow p-6 border border-gray-200">
                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Stock total</div>
                         <div class="text-3xl font-black text-blue-600 mt-2" id="stat-total-inventory">0</div>
                         <div class="text-xs text-gray-500 mt-2">Unidades disponibles</div>
                     </div>
 
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div class="bg-gray-50 rounded-lg shadow p-6 border border-gray-200">
                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Intentos totales</div>
                         <div class="text-3xl font-black text-purple-600 mt-2" id="stat-total-attempts">0</div>
                         <div class="text-xs text-gray-500 mt-2">Pedidos procesados</div>
                     </div>
 
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div class="bg-gray-50 rounded-lg shadow p-6 border border-gray-200">
                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Stock disponible</div>
                         <div class="text-3xl font-black text-green-600 mt-2" id="stat-available-products">0</div>
                         <div class="text-xs text-gray-500 mt-2">Productos en stock</div>
                     </div>
 
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div class="bg-gray-50 rounded-lg shadow p-6 border border-gray-200">
                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Agotados/Negativos</div>
                         <div class="text-3xl font-black text-red-600 mt-2" id="stat-sold-out">0</div>
                         <div class="text-xs text-gray-500 mt-2">Sobreventa detectada</div>
@@ -58,19 +58,19 @@
 
             <section class="mb-8">
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Segmentación de clientes</h2>
-                <div class="bg-white rounded-lg shadow p-6">
+                <div class="bg-gray-50 rounded-lg shadow p-6 border border-gray-200">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="border-l-4 border-green-600 pl-4">
+                        <div class="pl-4 text-center">
                             <div class="text-sm font-semibold text-green-700">High-Demand (20%)</div>
                             <div class="text-2xl font-black text-green-600 mt-1" id="stat-high-demand">0</div>
                             <div class="text-xs text-gray-500 mt-1">80% de intentos</div>
                         </div>
-                        <div class="border-l-4 border-blue-600 pl-4">
+                        <div class="pl-4 text-center">
                             <div class="text-sm font-semibold text-blue-700">Mid-Demand (50%)</div>
                             <div class="text-2xl font-black text-blue-600 mt-1" id="stat-mid-demand">0</div>
                             <div class="text-xs text-gray-500 mt-1">15% de intentos</div>
                         </div>
-                        <div class="border-l-4 border-gray-600 pl-4">
+                        <div class="pl-4 text-center">
                             <div class="text-sm font-semibold text-gray-700">Low-Demand (30%)</div>
                             <div class="text-2xl font-black text-gray-600 mt-1" id="stat-low-demand">0</div>
                             <div class="text-xs text-gray-500 mt-1">5% de intentos</div>
@@ -81,7 +81,7 @@
 
             <section class="mb-8">
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Rendimiento de última simulación</h2>
-                <div class="bg-white rounded-lg shadow p-6">
+                <div class="bg-gray-50 rounded-lg shadow p-6 border border-gray-200">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="text-center">
                             <div class="text-xs font-semibold text-gray-600 uppercase">Eventos generados</div>
@@ -103,7 +103,7 @@
 
             <section class="mb-8">
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Intentos por categoría</h2>
-                <div class="bg-white rounded-lg shadow p-6">
+                <div class="bg-gray-50 rounded-lg shadow p-6 border border-gray-200">
                     <div id="category-distribution" class="space-y-3">
                         <div class="text-center text-gray-500 py-8">Cargando...</div>
                     </div>
@@ -114,7 +114,7 @@
                 <h2 class="text-2xl font-bold text-gray-900 mb-4">Balance de stock por producto</h2>
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full">
+                        <table class="w-full border border-gray-200">
                             <thead class="bg-gray-100 border-b-2 border-gray-300">
                                 <tr>
                                     <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Producto</th>

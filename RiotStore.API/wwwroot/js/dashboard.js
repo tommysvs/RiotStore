@@ -2,7 +2,7 @@
 const dashboardState = {
     products: [],
     benchmarks: [],
-    refreshInterval: 3000
+    refreshInterval: 2000
 };
 
 // Initialize dashboard
@@ -117,7 +117,7 @@ function updateCategoryDistribution() {
                         <span class="text-sm font-medium text-gray-700">${category}</span>
                         <span class="text-sm font-bold text-gray-900">${percentage}% (${attempts.toLocaleString()})</span>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="w-full bg-gray-300 rounded-full h-2">
                         <div class="bg-red-600 h-2 rounded-full" style="width: ${percentage}%"></div>
                     </div>
                 </div>
