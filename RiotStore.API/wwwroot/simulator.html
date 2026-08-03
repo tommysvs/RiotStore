@@ -78,6 +78,14 @@
                                 <span class="text-gray-600">Fallidas</span>
                                 <span id="requests-failed" class="text-red-600 font-bold">0</span>
                             </div>
+                            <div class="flex justify-between border-t border-gray-300 pt-3 mt-3">
+                                <span class="text-gray-600 font-bold">Throughput (eventos/segundo)</span>
+                                <span id="throughput-result" class="text-red-600 font-bold">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Tiempo total (segundos)</span>
+                                <span id="elapsed-time" class="text-red-600 font-bold">-</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -89,7 +97,7 @@
                     <p><span class="text-red-600 font-bold">Endpoint:</span> POST /api/simulator/batch-metrics</p>
                     <p><span class="text-red-600 font-bold">Body esperado:</span> { productId, quantity, batchCount }</p>
                     <p><span class="text-red-600 font-bold">Respuesta:</span> { totalRequests, successCount, failureCount, startedAt, completedAt }</p>
-                    <p class="mt-6 text-gray-600">Este simulador envía peticiones masivas al backend para probar el rendimiento ante picos de tráfico durante flash sales.</p>
+                    <p class="mt-6 text-gray-600">Este simulador envía peticiones masivas al backend para probar el rendimiento ante picos de tráfico durante flash sales. El throughput se calcula localmente y refleja eventos/segundo.</p>
                 </div>
             </div>
         </section>
@@ -111,8 +119,6 @@
             try {
                 const response = await fetch('/api/products');
                 const products = await response.json();
-                console.log('Productos cargados:', products);
-
                 renderProductSelect(products);
             } catch (error) {
                 console.error('Error loading products:', error);
@@ -123,15 +129,12 @@
 
         function renderProductSelect(products) {
             const select = document.getElementById('product-select');
-
             if (!products || products.length === 0) {
                 select.innerHTML = '<option value="">No hay productos disponibles</option>';
                 return;
             }
-
             select.innerHTML = products.map(p => `<option value="${p.product_id}">${p.name}</option>`).join('');
             select.value = products[0].product_id;
-            console.log('Producto seleccionado por defecto:', products[0].product_id);
         }
 
         function updateEstimation() {
@@ -176,6 +179,7 @@
             submitBtn.disabled = true;
 
             let totalSent = 0, totalSuccess = 0, totalFailed = 0;
+            const startTime = Date.now();
 
             for (let burst = 0; burst < burstCount; burst++) {
                 try {
@@ -208,6 +212,13 @@
                     await new Promise(resolve => setTimeout(resolve, burstInterval));
                 }
             }
+
+            const elapsedMs = Date.now() - startTime;
+            const elapsedSec = (elapsedMs / 1000).toFixed(2);
+            const throughput = (totalSent / elapsedSec).toFixed(2);
+
+            document.getElementById('elapsed-time').textContent = elapsedSec;
+            document.getElementById('throughput-result').textContent = `${throughput} eventos/segundo`;
 
             form.style.opacity = '1';
             submitBtn.disabled = false;
