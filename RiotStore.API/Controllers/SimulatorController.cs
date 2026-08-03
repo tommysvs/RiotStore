@@ -32,12 +32,12 @@ namespace RiotStore.API.Controllers
         [HttpPost("batch-metrics")]
         public async Task<IActionResult> SendBatchWithMetrics([FromBody] BatchSimulationRequestDto request)
         {
-            if (request.ProductId <= 0 || request.Quantity <= 0 || request.BatchCount <= 0)
+            if (request.Quantity <= 0 || request.BatchCount <= 0)
             {
-                return BadRequest(new { error = "Los parámetros productId, quantity y batchCount deben ser mayores a 0" });
+                return BadRequest(new { error = "Los parámetros quantity y batchCount deben ser mayores a 0" });
             }
 
-            var metrics = await _simulatorService.SimulateBatchWithMetricsAsync(request.ProductId, request.Quantity, request.BatchCount);
+            var metrics = await _simulatorService.SimulateBatchWithMetricsAsync(request.Quantity, request.BatchCount);
             return Ok(metrics);
         }
     }
@@ -51,7 +51,6 @@ namespace RiotStore.API.Controllers
 
     public class BatchSimulationRequestDto
     {
-        public int ProductId { get; set; }
         public int Quantity { get; set; }
         public int BatchCount { get; set; }
     }

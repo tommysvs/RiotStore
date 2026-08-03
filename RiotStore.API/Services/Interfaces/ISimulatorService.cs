@@ -6,6 +6,6 @@ namespace RiotStore.API.Services.Interfaces
     {
         Task SimulatePurchaseAttemptAsync(int productId, string productName, int quantity);
         Task SimulateBatchPurchaseAsync(List<(int productId, string productName, int quantity)> purchases);
-        Task<SimulationMetricsDto> SimulateBatchWithMetricsAsync(int productId, int quantity, int batchCount);
+        Task<SimulationMetricsDto> SimulateBatchWithMetricsAsync(int quantity, int batchCount);
     }
 }

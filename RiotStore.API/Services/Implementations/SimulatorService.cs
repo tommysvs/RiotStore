@@ -38,7 +38,7 @@ namespace RiotStore.API.Services.Implementations
                 CustomerId = new Random().Next(1, 1000),
                 CreatedAt = DateTime.UtcNow,
                 TotalAmount = quantity * product.price,
-                Items = new()
+                Items = new List<OrderItemDto>
                 {
                     new OrderItemDto
                     {
@@ -51,19 +51,20 @@ namespace RiotStore.API.Services.Implementations
             };
 
             await _kafkaProducer.SendOrderCreatedEventAsync(orderEvent);
-            _logger.LogInformation($"Intento de compra simulado: Producto {productId}, Cantidad: {quantity}");
         }
 
         public async Task SimulateBatchPurchaseAsync(List<(int productId, string productName, int quantity)> purchases)
         {
-            var tasks = purchases.Select(p => SimulatePurchaseAttemptAsync(p.productId, p.productName, p.quantity));
-            await Task.WhenAll(tasks);
-            _logger.LogInformation($"Lote de {purchases.Count} intentos de compra simulados");
+            foreach (var (productId, productName, quantity) in purchases)
+            {
+                await SimulatePurchaseAttemptAsync(productId, productName, quantity);
+            }
         }
 
-        public async Task<SimulationMetricsDto> SimulateBatchWithMetricsAsync(int productId, int quantity, int batchCount)
+        public async Task<SimulationMetricsDto> SimulateBatchWithMetricsAsync(int quantity, int batchCount)
         {
             var startTime = DateTime.UtcNow;
+
             var metrics = new SimulationMetricsDto
             {
                 TotalRequests = quantity * batchCount,
@@ -94,8 +95,8 @@ namespace RiotStore.API.Services.Implementations
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Error en simulación batch: {ex.Message}\n{ex.StackTrace}");
                 metrics.FailureCount = metrics.TotalRequests;
-                _logger.LogError($"Error en simulación: {ex.Message}");
             }
 
             metrics.CompletedAt = DateTime.UtcNow;
@@ -129,8 +130,7 @@ namespace RiotStore.API.Services.Implementations
 
         private long GenerateUniqueOrderId()
         {
-            return long.Parse(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString())
-                   * 100000 + new Random().Next(100000);
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
     }
 }
