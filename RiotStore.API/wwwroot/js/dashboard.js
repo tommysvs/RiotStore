@@ -9,13 +9,24 @@ const dashboardState = {
 async function initializeDashboard() {
     renderNavbar();
     renderFooter();
+
+    renderBreadcrumbContainer();
+
     updateCartBadge();
     updateCurrentTime();
+
     await loadDashboardData();
 
-    // Auto-refresh
     setInterval(loadDashboardData, dashboardState.refreshInterval);
     setInterval(updateCurrentTime, 1000);
+}
+
+function renderBreadcrumbContainer() {
+    const container = document.getElementById('breadcrumb-container');
+    container.innerHTML = renderBreadcrumb([
+        { label: 'Inicio', href: 'index.html' },
+        { label: 'Dashboard' }
+    ]);
 }
 
 // Update current time
@@ -41,8 +52,6 @@ async function loadDashboardData() {
         dashboardState.products = Array.isArray(stocks) ? stocks : [];
         dashboardState.benchmarks = Array.isArray(benchmarks) ? benchmarks : [];
 
-        console.log('Stocks cargados:', dashboardState.products.length);
-        console.log('Benchmarks cargados:', dashboardState.benchmarks.length);
 
         updateMetrics();
         updateSegmentation();

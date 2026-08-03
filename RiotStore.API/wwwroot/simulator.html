@@ -10,7 +10,10 @@
 </head>
 <body class="bg-white text-gray-900 font-sans">
     <nav id="navbar-container" class="bg-black sticky top-0 z-50 shadow-md"></nav>
+
     <main id="main-content">
+        <div id="breadcrumb-container"></div>
+
         <section class="max-w-4xl mx-auto px-4 py-12">
             <h1 class="text-4xl font-black text-red-600 uppercase tracking-tight mb-12">Simulador de tráfico para Flash Sale</h1>
 
@@ -77,6 +80,7 @@
             </div>
         </section>
     </main>
+
     <footer id="booter-container" class="bg-black mt-10"></footer>
 
     <script src="js/utils.js"></script>
@@ -85,8 +89,19 @@
         async function loadSimulatorPage() {
             renderNavbar();
             renderFooter();
+
+            renderBreadcrumbContainer();
+
             attachSimulatorListeners();
             updateCartBadge();
+        }
+
+        function renderBreadcrumbContainer() {
+            const container = document.getElementById('breadcrumb-container');
+            container.innerHTML = renderBreadcrumb([
+                { label: 'Inicio', href: 'index.html' },
+                { label: 'Simulador' }
+            ]);
         }
 
         function attachSimulatorListeners() {
