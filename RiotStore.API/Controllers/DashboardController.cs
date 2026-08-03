@@ -186,5 +186,40 @@ namespace RiotStore.API.Controllers
 
             return Ok(summary);
         }
+
+        [HttpGet("purchase-attempts/by-category")]
+        public async Task<IActionResult> GetPurchaseAttemptsByCategory(DateTime? since = null)
+        {
+            var query = _context.PurchaseAttempts.AsNoTracking();
+
+            if (since.HasValue)
+            {
+                query = query.Where(pa => pa.attempted_at >= since.Value);
+            }
+
+            var attempts = await query.ToListAsync();
+
+            if (!attempts.Any())
+            {
+                return Ok(new List<object>());
+            }
+
+            var byCategory = attempts
+                .GroupBy(pa => pa.product_category ?? "Sin categoría")
+                .Select(g => new
+                {
+                    category = g.Key,
+                    totalAttempts = g.Count(),
+                    successfulAttempts = g.Count(pa => pa.status == "SUCCESS"),
+                    failedAttempts = g.Count(pa => pa.status != "SUCCESS"),
+                    conversionRate = g.Count() > 0 
+                        ? Math.Round((double)g.Count(pa => pa.status == "SUCCESS") / g.Count() * 100, 2)
+                        : 0
+                })
+                .OrderByDescending(x => x.totalAttempts)
+                .ToList();
+
+            return Ok(byCategory);
+        }
     }
 }

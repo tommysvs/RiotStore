@@ -13,7 +13,6 @@ namespace RiotStore.API.Services.Implementations
     public class DataGeneratorService : IDataGeneratorService
     {
         private readonly IProductRepository _productRepository;
-        private readonly ILogger<DataGeneratorService> _logger;
         private readonly Random _random = new();
 
         private List<Product>? _productsCache = null;
@@ -22,17 +21,17 @@ namespace RiotStore.API.Services.Implementations
 
         private static readonly Dictionary<string, decimal> CategoryDemandWeights = new()
         {
-            { "Estatuas y Figuras", 0.30m },    // 30% on demand
-            { "Coleccionables", 0.35m },        // 35% on demand (more demanded)
-            { "Ropa", 0.25m },                  // 25% on demand
-            { "Peluches", 0.10m }               // 10% on demand
+            { "Estatuas y Figuras", 0.30m },
+            { "Coleccionables", 0.35m },
+            { "Ropa", 0.25m },
+            { "Peluches", 0.10m }
         };
 
         private static readonly Dictionary<string, decimal> CustomerSegmentDistribution = new()
         {
-            { "high-demand", 0.20m },      // 20% clients - 80% attempts
-            { "mid-demand", 0.50m },       // 50% clients - 15% attempts
-            { "low-demand", 0.30m }        // 30% clients - 5% attempts
+            { "high-demand", 0.20m },
+            { "mid-demand", 0.50m },
+            { "low-demand", 0.30m }
         };
 
         public DataGeneratorService(
@@ -50,7 +49,6 @@ namespace RiotStore.API.Services.Implementations
                 return _productsCache;
             }
 
-            _logger.LogInformation("[GetProductsAsync] Cargando productos de BD");
             _productsCache = await _productRepository.GetAllProductsAsync();
             _productsCacheTime = DateTime.UtcNow;
 
@@ -59,7 +57,6 @@ namespace RiotStore.API.Services.Implementations
                 throw new InvalidOperationException("No products available for generation");
             }
 
-            _logger.LogInformation($"[GetProductsAsync] {_productsCache.Count} productos cacheados");
             return _productsCache;
         }
 
@@ -102,12 +99,10 @@ namespace RiotStore.API.Services.Implementations
             string? targetProductCategory = null,
             bool simulatePeakHour = false)
         {
-            _logger.LogInformation($"[GenerateBatchAsync] Iniciando generación de {count} eventos");
-            var sw = Stopwatch.StartNew();
-
             var products = await GetProductsAsync();
             var peakHourMultiplier = simulatePeakHour ? 1.5m : 1.0m;
             var events = new List<OrderCreatedEvent>(count);
+            int skippedCount = 0;
 
             for (int i = 0; i < count; i++)
             {
@@ -119,6 +114,12 @@ namespace RiotStore.API.Services.Implementations
                     !selectedProduct.category?.name?.Equals(targetProductCategory, StringComparison.OrdinalIgnoreCase) == true)
                 {
                     i--;
+                    skippedCount++;
+                    
+                    if (skippedCount > count * 2)
+                    {
+                        break;
+                    }
                     continue;
                 }
 
@@ -146,10 +147,9 @@ namespace RiotStore.API.Services.Implementations
                 };
 
                 events.Add(orderEvent);
+                skippedCount = 0;
             }
 
-            sw.Stop();
-            _logger.LogInformation($"[GenerateBatchAsync] Generados {count} eventos en {sw.Elapsed.TotalSeconds:F2}s");
             return events;
         }
 

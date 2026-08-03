@@ -28,7 +28,6 @@ namespace RiotStore.Consumer.Services.Implementations
             {
                 if (orderEvent?.Items == null || !orderEvent.Items.Any())
                 {
-                    _logger.LogWarning($"Evento vacío recibido");
                     return;
                 }
 
@@ -47,7 +46,6 @@ namespace RiotStore.Consumer.Services.Implementations
                     };
                     _context.Clients.Add(client);
                     await _context.SaveChangesAsync();
-                    _logger.LogInformation($"Cliente creado: {client.client_id}");
                 }
 
                 var order = new Order
@@ -72,12 +70,10 @@ namespace RiotStore.Consumer.Services.Implementations
                 {
                     await ProcessOrderItemAsync(order, item, orderEvent);
                 }
-
-                _logger.LogInformation($"Orden procesada: {order.order_id}");
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error procesando orden: {ex.Message}\n{ex.StackTrace}");
+                _logger.LogError($"Error procesando orden: {ex.Message}");
                 throw;
             }
         }
@@ -94,7 +90,6 @@ namespace RiotStore.Consumer.Services.Implementations
 
                 if (product == null)
                 {
-                    _logger.LogWarning($"Producto no encontrado: {item.ProductId}");
                     return;
                 }
 
@@ -102,9 +97,6 @@ namespace RiotStore.Consumer.Services.Implementations
                 
                 if (currentStock == null || currentStock.current_balance < item.Quantity)
                 {
-                    _logger.LogWarning($"Stock insuficiente - Producto: {item.ProductId}, " +
-                        $"Disponible: {currentStock?.current_balance ?? 0}, Solicitado: {item.Quantity}");
-                    
                     var failedAttempt = new PurchaseAttempt
                     {
                         order_id = order.order_id,
@@ -121,6 +113,24 @@ namespace RiotStore.Consumer.Services.Implementations
                     
                     _context.PurchaseAttempts.Add(failedAttempt);
                     await _context.SaveChangesAsync();
+                    
+                    if (currentStock != null)
+                    {
+                        await _stockRepository.UpdateOrCreateAsync(
+                            item.ProductId,
+                            currentStock.initial_stock,
+                            currentStock.total_attempts + 1,
+                            currentStock.current_balance);
+                    }
+                    else
+                    {
+                        await _stockRepository.UpdateOrCreateAsync(
+                            item.ProductId,
+                            0,
+                            1,
+                            0);
+                    }
+                    
                     return;
                 }
 
@@ -159,8 +169,6 @@ namespace RiotStore.Consumer.Services.Implementations
                     currentStock.initial_stock,
                     currentStock.total_attempts + 1,
                     newBalance);
-
-                _logger.LogInformation($"Ítem procesado exitosamente - Orden: {order.order_id}, Producto: {item.ProductId}, Cantidad: {item.Quantity}");
             }
             catch (Exception ex)
             {
