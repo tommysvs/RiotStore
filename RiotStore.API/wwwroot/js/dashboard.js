@@ -52,7 +52,6 @@ async function loadDashboardData() {
         dashboardState.products = Array.isArray(stocks) ? stocks : [];
         dashboardState.benchmarks = Array.isArray(benchmarks) ? benchmarks : [];
 
-
         updateMetrics();
         updateSegmentation();
         updateBenchmarks();
@@ -151,39 +150,30 @@ function updateProductsTable() {
         const percentageAvailable = stock.initialStock > 0
             ? ((stock.currentBalance / stock.initialStock) * 100).toFixed(1)
             : 0;
-        
-        const conversionRate = stock.totalAttempts > 0
-            ? ((stock.soldUnits / stock.totalAttempts) * 100).toFixed(1)
-            : 0;
 
-        let status = 'OK', statusClass = 'bg-green-100 text-green-700';
-        if (stock.currentBalance < 0) {
-            status = 'SOBREVENTA';
-            statusClass = 'bg-red-100 text-red-700';
-        } else if (stock.currentBalance === 0) {
-            status = 'AGOTADO';
-            statusClass = 'bg-orange-100 text-orange-700';
-        } else if (stock.currentBalance <= 10) {
-            status = 'BAJO';
-            statusClass = 'bg-yellow-100 text-yellow-700';
-        }
-
-        const balanceClass = stock.currentBalance < 0 ? 'text-red-600 font-bold' : 
-                            stock.currentBalance === 0 ? 'text-orange-600 font-bold' : 'text-green-600 font-bold';
+        const statusBadge = stock.currentBalance > 0
+            ? `<span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">Disponible</span>`
+            : stock.currentBalance === 0
+                ? `<span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">Agotado</span>`
+                : `<span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">Sobreventa</span>`;
 
         return `
-            <tr class="hover:bg-gray-50 transition">
-                <td class="px-6 py-3 text-sm font-medium text-gray-900">${stock.productName}</td>
-                <td class="px-6 py-3 text-sm text-gray-600">${stock.productSku}</td>
-                <td class="px-6 py-3 text-sm text-gray-600">${stock.categoryName}</td>
-                <td class="px-6 py-3 text-right text-sm text-gray-900">${stock.initialStock.toLocaleString()}</td>
-                <td class="px-6 py-3 text-right text-sm font-semibold text-gray-900">${(stock.totalAttempts || 0).toLocaleString()}</td>
-                <td class="px-6 py-3 text-right text-sm text-gray-900">${(stock.soldUnits || 0).toLocaleString()}</td>
-                <td class="px-6 py-3 text-right text-sm font-bold ${balanceClass}">${stock.currentBalance.toLocaleString()}</td>
-                <td class="px-6 py-3 text-center text-sm text-gray-900">${percentageAvailable}%</td>
-                <td class="px-6 py-3 text-center text-sm text-gray-900">${conversionRate}%</td>
-                <td class="px-6 py-3 text-center">
-                    <span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">${status}</span>
+            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="px-6 py-4 font-medium text-gray-900">${stock.productName}</td>
+                <td class="px-6 py-4 text-gray-600">${stock.productSku}</td>
+                <td class="px-6 py-4 text-gray-600">${stock.categoryName}</td>
+                <td class="px-6 py-4 text-right text-gray-900">${stock.initialStock.toLocaleString()}</td>
+                <td class="px-6 py-4 text-right text-gray-900">${stock.totalAttempts.toLocaleString()}</td>
+                <td class="px-6 py-4 text-right text-gray-900">${stock.soldUnits.toLocaleString()}</td>
+                <td class="px-6 py-4 text-right text-gray-900">${stock.currentBalance.toLocaleString()}</td>
+                <td class="px-6 py-4 text-center">
+                    <span class="text-sm font-semibold text-gray-900">${percentageAvailable}%</span>
+                </td>
+                <td class="px-6 py-4 text-center">
+                    <span class="text-sm font-semibold text-gray-900">${stock.conversionRate.toFixed(2)}%</span>
+                </td>
+                <td class="px-6 py-4 text-center">
+                    ${statusBadge}
                 </td>
             </tr>
         `;
@@ -192,10 +182,10 @@ function updateProductsTable() {
     tbody.innerHTML = rows;
 }
 
-// Update last refresh time
 function updateLastRefreshTime() {
     const now = new Date();
-    document.getElementById('last-refresh').textContent = now.toLocaleTimeString('es-ES');
+    const timeString = now.toLocaleTimeString('es-ES');
+    document.getElementById('last-refresh').textContent = timeString;
 }
 
 // Initialize on load
