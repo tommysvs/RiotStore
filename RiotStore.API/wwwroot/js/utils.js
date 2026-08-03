@@ -16,6 +16,9 @@ function saveCart(cart) {
 function addToCart(product, quantity = 1) {
     const cart = getCart();
     const existingItem = cart.find(item => item.product_id === product.product_id);
+    const imageUrl = product.image_url && product.image_url.trim() !== ''
+        ? product.image_url
+        : 'https://placehold.co/300x300?text=N/A';
 
     if (existingItem) {
         existingItem.quantity += quantity;
@@ -25,7 +28,7 @@ function addToCart(product, quantity = 1) {
             sku: product.sku,
             name: product.name,
             price: product.price,
-            image_url: product.image_url,
+            image_url: imageUrl,
             quantity: quantity
         });
     }
