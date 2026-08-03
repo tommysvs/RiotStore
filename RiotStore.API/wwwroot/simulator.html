@@ -1,4 +1,5 @@
-﻿<html lang="es">
+﻿<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,104 +10,100 @@
 </head>
 <body class="bg-white text-gray-900 font-sans">
     <nav id="navbar-container" class="bg-black sticky top-0 z-50 shadow-md"></nav>
-    <main id="main-content"></main>
-    <footer id="booter-container" class="bg-black mt-20"></footer>
+    <main id="main-content">
+        <section class="max-w-4xl mx-auto px-4 py-12">
+            <h1 class="text-4xl font-black text-red-600 uppercase tracking-tight mb-12">Simulador de tráfico para Flash Sale</h1>
+
+            <div class="bg-gray-50 border-2 border-gray-300 p-8">
+                <form id="traffic-form" class="space-y-8">
+                    <div>
+                        <label for="product-select" class="block text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Producto objetivo</label>
+                        <select id="product-select" class="w-full bg-white border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-red-600 focus:outline-none uppercase">
+                            <option value="">Cargando productos...</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="batch-size" class="block text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Cantidad de peticiones en lote</label>
+                        <div class="flex gap-4">
+                            <input id="batch-size" type="number" min="100" max="10000" value="1000" class="flex-1 bg-white border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-red-600 focus:outline-none">
+                            <div class="text-sm text-gray-600 flex items-center">
+                                <span class="px-4 py-3">peticiones</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="burst-count" class="block text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Número de ráfagas (pulsos)</label>
+                        <div class="flex gap-4">
+                            <input id="burst-count" type="number" min="1" max="10" value="1" class="flex-1 bg-white border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-red-600 focus:outline-none">
+                            <div class="text-sm text-gray-600 flex items-center">
+                                <span class="px-4 py-3">pulsos</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="burst-interval" class="block text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Intervalo entre ráfagas (ms)</label>
+                        <input id="burst-interval" type="number" min="100" max="5000" value="500" class="w-full bg-white border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-red-600 focus:outline-none">
+                    </div>
+
+                    <div class="bg-white border-2 border-gray-300 p-6">
+                        <p class="text-gray-600 uppercase text-xs tracking-wider mb-2 font-bold">Estimación total de peticiones</p>
+                        <p id="total-requests" class="text-3xl font-black text-red-600">0</p>
+                    </div>
+
+                    <button type="submit" class="w-full px-8 py-4 bg-red-600 text-white font-black uppercase tracking-widest text-lg border-2 border-red-600 hover:bg-red-700 transition">
+                        Ejecutar
+                    </button>
+                </form>
+
+                <div id="execution-status" class="mt-12 hidden">
+                    <div class="bg-white border-2 border-red-600 p-8">
+                        <p class="text-red-600 uppercase text-sm tracking-wider mb-4 font-bold">Estado de Ejecución</p>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Ráfagas completadas</span>
+                                <span id="bursts-completed" class="text-red-600 font-bold">0 / 1</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Peticiones enviadas</span>
+                                <span id="requests-sent" class="text-red-600 font-bold">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Exitosas</span>
+                                <span id="requests-success" class="text-green-600 font-bold">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Fallidas</span>
+                                <span id="requests-failed" class="text-red-600 font-bold">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border-2 border-gray-300 p-8 mt-12">
+                <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight mb-6">Información técnica</h3>
+                <div class="space-y-4 text-sm text-gray-700">
+                    <p><span class="text-red-600 font-bold">Endpoint:</span> POST /api/simulator/batch-metrics</p>
+                    <p><span class="text-red-600 font-bold">Body esperado:</span> { productId, quantity, batchCount }</p>
+                    <p><span class="text-red-600 font-bold">Respuesta:</span> { totalRequests, successCount, failureCount, startedAt, completedAt }</p>
+                    <p class="mt-6 text-gray-600">Este simulador envía peticiones masivas al backend para probar el rendimiento ante picos de tráfico durante flash sales.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer id="booter-container" class="bg-black mt-10"></footer>
 
     <script src="js/utils.js"></script>
     <script src="js/components.js"></script>
     <script>
-        async function loadAdminPage() {
+        async function loadSimulatorPage() {
             renderNavbar();
             renderFooter();
-
-            const mainContent = document.getElementById('main-content');
-            mainContent.innerHTML = `
-                        <section class="max-w-4xl mx-auto px-4 py-12">
-                            <div class="bg-gray-50 border-2 border-gray-300 p-8">
-                                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-8">Simulador de tráfico para Flash Sale</h2>
-
-                                <form id="traffic-form" class="space-y-8">
-                                    <div>
-                                        <label class="block text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Producto Objetivo</label>
-                                        <select id="product-select" class="w-full bg-white border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-red-600 focus:outline-none uppercase">
-                                            <option value="">Cargando productos...</option>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Cantidad de Peticiones en Lote</label>
-                                        <div class="flex gap-4">
-                                            <input type="number" id="batch-size" min="100" max="10000" value="1000" class="flex-1 bg-white border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-red-600 focus:outline-none">
-                                            <div class="text-sm text-gray-600 flex items-center">
-                                                <span class="px-4 py-3">peticiones</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Número de Ráfagas (Pulsos)</label>
-                                        <div class="flex gap-4">
-                                            <input type="number" id="burst-count" min="1" max="10" value="1" class="flex-1 bg-white border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-red-600 focus:outline-none">
-                                            <div class="text-sm text-gray-600 flex items-center">
-                                                <span class="px-4 py-3">pulsos</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-gray-700 uppercase text-sm tracking-wider mb-4 font-bold">Intervalo entre Ráfagas (ms)</label>
-                                        <input type="number" id="burst-interval" min="100" max="5000" value="500" class="w-full bg-white border-2 border-gray-300 px-4 py-3 text-gray-900 focus:border-red-600 focus:outline-none">
-                                    </div>
-
-                                    <div class="bg-white border-2 border-gray-300 p-6">
-                                        <p class="text-gray-600 uppercase text-xs tracking-wider mb-2 font-bold">Estimación Total de Peticiones</p>
-                                        <p id="total-requests" class="text-3xl font-black text-red-600">0</p>
-                                    </div>
-
-                                    <button type="submit" class="w-full px-8 py-4 bg-red-600 text-white font-black uppercase tracking-widest text-lg border-2 border-red-600 hover:bg-red-700 transition">
-                                        Ejecutar tráfico
-                                    </button>
-                                </form>
-
-                                <div id="execution-status" class="mt-12 hidden">
-                                    <div class="bg-white border-2 border-red-600 p-8">
-                                        <p class="text-red-600 uppercase text-sm tracking-wider mb-4 font-bold">Estado de Ejecución</p>
-                                        <div class="space-y-3">
-                                            <div class="flex justify-between">
-                                                <span class="text-gray-600">Ráfagas completadas</span>
-                                                <span id="bursts-completed" class="text-red-600 font-bold">0 / 1</span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-gray-600">Peticiones enviadas</span>
-                                                <span id="requests-sent" class="text-red-600 font-bold">0</span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-gray-600">Exitosas</span>
-                                                <span id="requests-success" class="text-green-600 font-bold">0</span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-gray-600">Fallidas</span>
-                                                <span id="requests-failed" class="text-red-600 font-bold">0</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-gray-50 border-2 border-gray-300 p-8 mt-12">
-                                <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight mb-6">Información Técnica</h3>
-                                <div class="space-y-4 text-sm text-gray-700">
-                                    <p><span class="text-red-600 font-bold">Endpoint:</span> POST /api/simulator/batch-metrics</p>
-                                    <p><span class="text-red-600 font-bold">Body esperado:</span> { productId, quantity, batchCount }</p>
-                                    <p><span class="text-red-600 font-bold">Respuesta:</span> { totalRequests, successCount, failureCount, startedAt, completedAt }</p>
-                                    <p class="mt-6 text-gray-600">Este simulador envía peticiones masivas al backend para probar el rendimiento ante picos de tráfico durante flash sales.</p>
-                                </div>
-                            </div>
-                        </section>
-                    `;
-
             await loadProducts();
-            setupAdminListeners();
+            attachSimulatorListeners();
             updateCartBadge();
         }
 
@@ -114,11 +111,27 @@
             try {
                 const response = await fetch('/api/products');
                 const products = await response.json();
-                const select = document.getElementById('product-select');
-                select.innerHTML = products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                console.log('Productos cargados:', products);
+
+                renderProductSelect(products);
             } catch (error) {
                 console.error('Error loading products:', error);
+                const select = document.getElementById('product-select');
+                select.innerHTML = '<option value="">Error al cargar productos</option>';
             }
+        }
+
+        function renderProductSelect(products) {
+            const select = document.getElementById('product-select');
+
+            if (!products || products.length === 0) {
+                select.innerHTML = '<option value="">No hay productos disponibles</option>';
+                return;
+            }
+
+            select.innerHTML = products.map(p => `<option value="${p.product_id}">${p.name}</option>`).join('');
+            select.value = products[0].product_id;
+            console.log('Producto seleccionado por defecto:', products[0].product_id);
         }
 
         function updateEstimation() {
@@ -128,75 +141,87 @@
             document.getElementById('total-requests').textContent = total.toLocaleString();
         }
 
-        function setupAdminListeners() {
+        function attachSimulatorListeners() {
             document.getElementById('batch-size').addEventListener('change', updateEstimation);
             document.getElementById('burst-count').addEventListener('change', updateEstimation);
 
             document.getElementById('traffic-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
 
-                const productId = parseInt(document.getElementById('product-select').value);
-                const batchSize = parseInt(document.getElementById('batch-size').value);
-                const burstCount = parseInt(document.getElementById('burst-count').value);
-                const burstInterval = parseInt(document.getElementById('burst-interval').value);
+                const productSelect = document.getElementById('product-select');
+                const productId = productSelect.value;
 
-                if (!productId) {
+                if (!productId || productId === '') {
                     showNotification('Selecciona un producto', 'error');
                     return;
                 }
 
-                const statusDiv = document.getElementById('execution-status');
-                statusDiv.classList.remove('hidden');
+                const batchSize = parseInt(document.getElementById('batch-size').value);
+                const burstCount = parseInt(document.getElementById('burst-count').value);
+                const burstInterval = parseInt(document.getElementById('burst-interval').value);
 
-                document.getElementById('traffic-form').style.opacity = '0.5';
-                document.querySelector('button[type="submit"]').disabled = true;
-
-                let totalSent = 0, totalSuccess = 0, totalFailed = 0;
-
-                for (let burst = 0; burst < burstCount; burst++) {
-                    try {
-                        const response = await fetch('/api/simulator/batch-metrics', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                productId: productId,
-                                quantity: batchSize,
-                                batchCount: 1
-                            })
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-
-                        const result = await response.json();
-                        totalSent += result.totalRequests || batchSize;
-                        totalSuccess += result.successCount || 0;
-                        totalFailed += result.failureCount || 0;
-                    } catch (error) {
-                        console.error('Error en ráfaga:', error);
-                        totalFailed += batchSize;
-                    }
-
-                    document.getElementById('bursts-completed').textContent = `${burst + 1} / ${burstCount}`;
-                    document.getElementById('requests-sent').textContent = totalSent.toLocaleString();
-                    document.getElementById('requests-success').textContent = totalSuccess.toLocaleString();
-                    document.getElementById('requests-failed').textContent = totalFailed.toLocaleString();
-
-                    if (burst < burstCount - 1) {
-                        await new Promise(resolve => setTimeout(resolve, burstInterval));
-                    }
-                }
-
-                document.getElementById('traffic-form').style.opacity = '1';
-                document.querySelector('button[type="submit"]').disabled = false;
-                showNotification('¡Simulación completada!', 'success');
+                await executeSimulation(productId, batchSize, burstCount, burstInterval);
             });
 
             updateEstimation();
         }
 
-        document.addEventListener('DOMContentLoaded', loadAdminPage);
+        async function executeSimulation(productId, batchSize, burstCount, burstInterval) {
+            const statusDiv = document.getElementById('execution-status');
+            const form = document.getElementById('traffic-form');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            statusDiv.classList.remove('hidden');
+            form.style.opacity = '0.5';
+            submitBtn.disabled = true;
+
+            let totalSent = 0, totalSuccess = 0, totalFailed = 0;
+
+            for (let burst = 0; burst < burstCount; burst++) {
+                try {
+                    const response = await fetch('/api/simulator/batch-metrics', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            productId: productId,
+                            quantity: batchSize,
+                            batchCount: 1
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    totalSent += result.totalRequests || batchSize;
+                    totalSuccess += result.successCount || 0;
+                    totalFailed += result.failureCount || 0;
+                } catch (error) {
+                    console.error('Error en ráfaga:', error);
+                    totalFailed += batchSize;
+                }
+
+                updateExecutionStatus(burst + 1, burstCount, totalSent, totalSuccess, totalFailed);
+
+                if (burst < burstCount - 1) {
+                    await new Promise(resolve => setTimeout(resolve, burstInterval));
+                }
+            }
+
+            form.style.opacity = '1';
+            submitBtn.disabled = false;
+            showNotification('¡Simulación completada!', 'success');
+        }
+
+        function updateExecutionStatus(completedBurst, totalBurst, sent, success, failed) {
+            document.getElementById('bursts-completed').textContent = `${completedBurst} / ${totalBurst}`;
+            document.getElementById('requests-sent').textContent = sent.toLocaleString();
+            document.getElementById('requests-success').textContent = success.toLocaleString();
+            document.getElementById('requests-failed').textContent = failed.toLocaleString();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadSimulatorPage);
     </script>
 </body>
 </html>

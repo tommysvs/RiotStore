@@ -6,42 +6,35 @@
     <title>Riot Merch - League of Legends Classic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css">
+    <link rel="icon" type="image/x-icon" href="/assets/img/favicon.ico" />
 </head>
 <body class="bg-white text-gray-900 font-sans">
     <nav id="navbar-container" class="bg-black sticky top-0 z-50 shadow-md"></nav>
-    <main id="main-content"></main>
+    <main id="main-content">
+        <section class="relative w-full h-96 md:h-screen bg-gradient-to-r from-black to-gray-900 flex items-center overflow-hidden">
+            <div class="absolute inset-0">
+                <img src="/assets/img/hero.png" alt="Zilean Hero" class="w-full h-full object-cover opacity-40">
+            </div>
+
+            <div class="relative z-10 max-w-7xl mx-auto px-4 w-full">
+                <div class="max-w-2xl">
+                    <h1 class="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-4">
+                        Flash sale
+                    </h1>
+                    <p class="text-xl md:text-2xl text-amber-400 uppercase tracking-widest mb-8 font-semibold">
+                        Colección exclusiva de League of Legends Classic
+                    </p>
+
+                    <a href="catalog.html" class="inline-block px-8 py-3 bg-red-600 text-white font-bold uppercase tracking-wider hover:bg-amber-500 hover:text-black transition">
+                        Ver colección completa
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
     <footer id="booter-container" class="bg-black"></footer>
 
     <script src="js/utils.js"></script>
     <script src="js/components.js"></script>
-    <script>
-        async function loadHomePage() {
-            const mainContent = document.getElementById('main-content');
-            mainContent.innerHTML = `
-                <section class="relative w-full h-96 md:h-screen bg-gradient-to-r from-black to-gray-900 flex items-center overflow-hidden">
-                    <div class="absolute inset-0">
-                        <img src="/assets/img/hero.png" alt="Zilean Hero" class="w-full h-full object-cover opacity-40">
-                    </div>
-
-                    <div class="relative z-10 max-w-7xl mx-auto px-4 w-full">
-                        <div class="max-w-2xl">
-                            <h1 class="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-4">
-                                Flash sale
-                            </h1>
-                            <p class="text-xl md:text-2xl text-amber-400 uppercase tracking-widest mb-8 font-semibold">
-                                Colección exclusiva de League of Legends Classic
-                            </p>
-
-                            <a href="catalog.html" class="inline-block px-8 py-3 bg-red-600 text-white font-bold uppercase tracking-wider hover:bg-amber-500 hover:text-black transition">
-                                Ver colección completa
-                            </a>
-                        </div>
-                    </div>
-                </section>
-            `;
-        }
-
-        document.addEventListener('DOMContentLoaded', loadHomePage);
-    </script>
 </body>
 </html>
