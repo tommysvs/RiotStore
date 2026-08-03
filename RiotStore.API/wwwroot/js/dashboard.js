@@ -1,172 +1,193 @@
 ﻿// Dashboard real-time state
 const dashboardState = {
-    statistics: null,
     products: [],
-    refreshInterval: 2000,
-    autoRefreshEnabled: true
+    benchmarks: [],
+    refreshInterval: 3000
 };
 
 // Initialize dashboard
 async function initializeDashboard() {
+    renderNavbar();
+    renderFooter();
+    updateCartBadge();
     updateCurrentTime();
-    setInterval(updateCurrentTime, 1000);
-
-    // First load
     await loadDashboardData();
 
-    // Auto-refresh every X seconds
+    // Auto-refresh
     setInterval(loadDashboardData, dashboardState.refreshInterval);
+    setInterval(updateCurrentTime, 1000);
 }
 
 // Update current time
 function updateCurrentTime() {
     const now = new Date();
-    const timeString = now.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    document.getElementById('current-time').textContent = timeString;
+    document.getElementById('current-time').textContent = now.toLocaleTimeString('es-ES');
 }
 
 // Load all dashboard data
 async function loadDashboardData() {
     try {
-        const [statsResponse, stockResponse] = await Promise.all([
-            fetch(`${API_BASE_URL}/dashboard/statistics`),
-            fetch(`${API_BASE_URL}/dashboard/all-stock`)
+        const [stocks, benchmarks] = await Promise.all([
+            fetch('/api/dashboard/stock').then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            }),
+            fetch('/api/dashboard/benchmarks').then(r => {
+                if (!r.ok) return [];
+                return r.json();
+            }).catch(() => [])
         ]);
 
-        if (!statsResponse.ok || !stockResponse.ok) {
-            console.error('Error fetching data');
-            return;
-        }
+        dashboardState.products = Array.isArray(stocks) ? stocks : [];
+        dashboardState.benchmarks = Array.isArray(benchmarks) ? benchmarks : [];
 
-        dashboardState.statistics = await statsResponse.json();
-        dashboardState.products = await stockResponse.json();
+        console.log('Stocks cargados:', dashboardState.products.length);
+        console.log('Benchmarks cargados:', dashboardState.benchmarks.length);
 
-        updateGlobalStatistics();
+        updateMetrics();
+        updateSegmentation();
+        updateBenchmarks();
+        updateCategoryDistribution();
         updateProductsTable();
         updateLastRefreshTime();
     } catch (error) {
-        console.error('Error loading dashboard data:', error);
+        console.error('Error cargando datos del dashboard:', error);
     }
 }
 
-// Update global statistics cards
-function updateGlobalStatistics() {
-    const stats = dashboardState.statistics;
+// Update global metrics
+function updateMetrics() {
+    const stocks = dashboardState.products;
+    if (!stocks.length) return;
 
-    document.getElementById('stat-total-inventory').textContent =
-        stats.totalInventory.toLocaleString('es-ES');
+    const totalInventory = stocks.reduce((sum, s) => sum + (s.initialStock || 0), 0);
+    const totalAttempts = stocks.reduce((sum, s) => sum + (s.totalAttempts || 0), 0);
+    const available = stocks.filter(s => s.currentBalance > 0).length;
+    const soldOut = stocks.filter(s => s.currentBalance <= 0).length;
 
-    document.getElementById('stat-total-attempts').textContent =
-        stats.totalAttempts.toLocaleString('es-ES');
+    document.getElementById('stat-total-inventory').textContent = totalInventory.toLocaleString();
+    document.getElementById('stat-total-attempts').textContent = totalAttempts.toLocaleString();
+    document.getElementById('stat-available-products').textContent = available;
+    document.getElementById('stat-sold-out').textContent = soldOut;
+}
 
-    document.getElementById('stat-conversion-rate').textContent =
-        `${stats.globalConversionRate.toFixed(2)}%`;
+// Update segmentation statistics
+function updateSegmentation() {
+    const totalAttempts = dashboardState.products.reduce((sum, s) => sum + (s.totalAttempts || 0), 0);
+    if (totalAttempts === 0) return;
 
-    document.getElementById('stat-overselling').textContent =
-        `${stats.globalOverselling.toFixed(2)}%`;
+    document.getElementById('stat-high-demand').textContent = Math.round(totalAttempts * 0.80).toLocaleString();
+    document.getElementById('stat-mid-demand').textContent = Math.round(totalAttempts * 0.15).toLocaleString();
+    document.getElementById('stat-low-demand').textContent = Math.round(totalAttempts * 0.05).toLocaleString();
+}
 
-    document.getElementById('stat-available-products').textContent =
-        stats.availableProducts;
+// Update benchmarks statistics
+function updateBenchmarks() {
+    if (!dashboardState.benchmarks.length) {
+        document.getElementById('stat-events-generated').textContent = '0';
+        document.getElementById('stat-events-per-second').textContent = '0';
+        document.getElementById('stat-elapsed-seconds').textContent = '0';
+        return;
+    }
 
-    document.getElementById('stat-low-stock').textContent =
-        stats.lowStockProducts;
+    const latest = dashboardState.benchmarks[0];
 
-    document.getElementById('stat-exhausted').textContent =
-        stats.exhaustedProducts;
+    document.getElementById('stat-events-generated').textContent = (latest.total_events_generated || 0).toLocaleString();
+    document.getElementById('stat-events-per-second').textContent = (latest.events_per_second || 0).toFixed(2);
+    document.getElementById('stat-elapsed-seconds').textContent = (latest.elapsed_seconds || 0).toFixed(2);
+}
 
-    document.getElementById('stat-oversold-products').textContent =
-        stats.oversoldProducts;
+// Update category distribution
+function updateCategoryDistribution() {
+    const byCategory = {};
+
+    dashboardState.products.forEach(stock => {
+        const category = stock.categoryName || 'Sin categoría';
+        byCategory[category] = (byCategory[category] || 0) + (stock.totalAttempts || 0);
+    });
+
+    const totalAttempts = Object.values(byCategory).reduce((a, b) => a + b, 0);
+    const html = Object.entries(byCategory)
+        .sort((a, b) => b[1] - a[1])
+        .map(([category, attempts]) => {
+            const percentage = totalAttempts > 0 ? ((attempts / totalAttempts) * 100).toFixed(1) : 0;
+            return `
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-700">${category}</span>
+                        <span class="text-sm font-bold text-gray-900">${percentage}% (${attempts.toLocaleString()})</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-red-600 h-2 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+            `;
+        })
+        .join('');
+
+    document.getElementById('category-distribution').innerHTML = html || '<p class="text-gray-500 text-center py-4">Sin datos</p>';
 }
 
 // Update products table
 function updateProductsTable() {
     const tbody = document.getElementById('products-tbody');
+    const stocks = dashboardState.products;
 
-    if (!dashboardState.products || dashboardState.products.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="9" class="px-6 py-12 text-center text-gray-500">
-                    No hay productos registrados
-                </td>
-            </tr>
-        `;
+    if (!stocks.length) {
+        tbody.innerHTML = '<tr><td colspan="10" class="px-6 py-8 text-center text-gray-500">Sin datos</td></tr>';
         return;
     }
 
-    tbody.innerHTML = dashboardState.products.map(product => {
-        const isOversold = product.isOversold;
-        const statusClass = isOversold
-            ? 'status-oversold'
-            : product.currentBalance === 0
-                ? 'status-exhausted'
-                : product.currentBalance <= 10
-                    ? 'status-low'
-                    : 'status-available';
+    const rows = stocks.map(stock => {
+        const percentageAvailable = stock.initialStock > 0
+            ? ((stock.currentBalance / stock.initialStock) * 100).toFixed(1)
+            : 0;
+        
+        const conversionRate = stock.totalAttempts > 0
+            ? ((stock.soldUnits / stock.totalAttempts) * 100).toFixed(1)
+            : 0;
 
-        const statusText = isOversold
-            ? 'SOBREVENTA'
-            : product.currentBalance === 0
-                ? 'Agotado'
-                : product.currentBalance <= 10
-                    ? 'Stock Bajo'
-                    : 'Disponible';
+        let status = 'OK', statusClass = 'bg-green-100 text-green-700';
+        if (stock.currentBalance < 0) {
+            status = 'SOBREVENTA';
+            statusClass = 'bg-red-100 text-red-700';
+        } else if (stock.currentBalance === 0) {
+            status = 'AGOTADO';
+            statusClass = 'bg-orange-100 text-orange-700';
+        } else if (stock.currentBalance <= 10) {
+            status = 'BAJO';
+            statusClass = 'bg-yellow-100 text-yellow-700';
+        }
 
-        const percentageClass = product.currentBalance < 0
-            ? 'text-red-600 font-bold'
-            : 'text-gray-800';
+        const balanceClass = stock.currentBalance < 0 ? 'text-red-600 font-bold' : 
+                            stock.currentBalance === 0 ? 'text-orange-600 font-bold' : 'text-green-600 font-bold';
 
         return `
-            <tr class="hover:bg-gray-50 transition ${isOversold ? 'bg-red-50' : ''}">
-                <td class="px-6 py-4">
-                    <div class="font-semibold text-gray-900">${product.productName}</div>
-                </td>
-                <td class="px-6 py-4 text-gray-600">${product.productSku}</td>
-                <td class="px-6 py-4 text-right text-gray-800 font-semibold">
-                    ${product.initialStock.toLocaleString('es-ES')}
-                </td>
-                <td class="px-6 py-4 text-right text-purple-600 font-semibold">
-                    ${product.totalAttempts.toLocaleString('es-ES')}
-                </td>
-                <td class="px-6 py-4 text-right text-green-600 font-semibold">
-                    ${product.soldUnits.toLocaleString('es-ES')}
-                </td>
-                <td class="px-6 py-4 text-right font-bold ${percentageClass}">
-                    ${product.currentBalance.toLocaleString('es-ES')}
-                </td>
-                <td class="px-6 py-4 text-center">
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full" 
-                            style="width: ${Math.max(0, Math.min(100, product.percentageRemaining))}%"></div>
-                    </div>
-                    <span class="text-xs text-gray-600">${product.percentageRemaining.toFixed(1)}%</span>
-                </td>
-                <td class="px-6 py-4 text-center text-sm font-semibold">
-                    ${product.conversionRate.toFixed(2)}%
-                </td>
-                <td class="px-6 py-4 text-center">
-                    <span class="status-badge ${statusClass}">
-                        ${statusText}
-                    </span>
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-3 text-sm font-medium text-gray-900">${stock.productName}</td>
+                <td class="px-6 py-3 text-sm text-gray-600">${stock.productSku}</td>
+                <td class="px-6 py-3 text-sm text-gray-600">${stock.categoryName}</td>
+                <td class="px-6 py-3 text-right text-sm text-gray-900">${stock.initialStock.toLocaleString()}</td>
+                <td class="px-6 py-3 text-right text-sm font-semibold text-gray-900">${(stock.totalAttempts || 0).toLocaleString()}</td>
+                <td class="px-6 py-3 text-right text-sm text-gray-900">${(stock.soldUnits || 0).toLocaleString()}</td>
+                <td class="px-6 py-3 text-right text-sm font-bold ${balanceClass}">${stock.currentBalance.toLocaleString()}</td>
+                <td class="px-6 py-3 text-center text-sm text-gray-900">${percentageAvailable}%</td>
+                <td class="px-6 py-3 text-center text-sm text-gray-900">${conversionRate}%</td>
+                <td class="px-6 py-3 text-center">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">${status}</span>
                 </td>
             </tr>
         `;
     }).join('');
+
+    tbody.innerHTML = rows;
 }
 
 // Update last refresh time
 function updateLastRefreshTime() {
     const now = new Date();
-    const timeString = now.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    document.getElementById('last-refresh').textContent = timeString;
+    document.getElementById('last-refresh').textContent = now.toLocaleTimeString('es-ES');
 }
 
-// Initialize on page load
+// Initialize on load
 document.addEventListener('DOMContentLoaded', initializeDashboard);
