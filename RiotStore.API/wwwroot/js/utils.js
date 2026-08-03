@@ -32,6 +32,7 @@ function addToCart(product, quantity = 1) {
 
     saveCart(cart);
     updateCartBadge();
+    showNotification(`Producto añadido al carrito`, 'success');
 }
 
 // Removes a product from the cart
