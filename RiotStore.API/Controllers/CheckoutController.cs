@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using RiotStore.Infrastructure.Repositories.Interfaces;
+using RiotStore.Infrastructure.Data;
 using RiotStore.API.DTOs;
 using RiotStore.Shared.Events;
+using Microsoft.EntityFrameworkCore;
 
 namespace RiotStore.API.Controllers
 {
@@ -10,11 +12,19 @@ namespace RiotStore.API.Controllers
     public class CheckoutController : ControllerBase
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly IStockRepository _stockRepository;
+        private readonly RiotStoreDbContext _context;
         private readonly ILogger<CheckoutController> _logger;
 
-        public CheckoutController(IOrderRepository orderRepository, ILogger<CheckoutController> logger)
+        public CheckoutController(
+            IOrderRepository orderRepository,
+            IStockRepository stockRepository,
+            RiotStoreDbContext context,
+            ILogger<CheckoutController> logger)
         {
             _orderRepository = orderRepository;
+            _stockRepository = stockRepository;
+            _context = context;
             _logger = logger;
         }
 
@@ -29,6 +39,17 @@ namespace RiotStore.API.Controllers
                 {
                     _logger.LogWarning("Invalid checkout request - missing customer or items");
                     return BadRequest(new { error = "Customer y items son requeridos" });
+                }
+
+                var stockValidation = await ValidateStockAsync(request.Items);
+                if (!stockValidation.AllValid)
+                {
+                    _logger.LogWarning($"Stock validation failed: {string.Join(", ", stockValidation.InvalidItems)}");
+                    return BadRequest(new
+                    {
+                        error = "Stock insuficiente",
+                        details = stockValidation.InvalidItems
+                    });
                 }
 
                 var orderItems = request.Items.Select(item => new OrderItemDto
@@ -61,5 +82,40 @@ namespace RiotStore.API.Controllers
                 return StatusCode(500, new { error = $"Error al procesar el pedido: {ex.Message}" });
             }
         }
+
+        private async Task<StockValidationResponse> ValidateStockAsync(List<CartItemDto> items)
+        {
+            var invalidItems = new List<string>();
+
+            var allStocks = await _context.StockBalances
+                .AsNoTracking()
+                .ToListAsync();
+
+            var stockDict = allStocks.ToDictionary(s => s.product_id);
+
+            foreach (var item in items)
+            {
+                stockDict.TryGetValue(item.ProductId, out var stock);
+                var currentBalance = stock?.current_balance ?? 0;
+                
+                if (currentBalance < item.Quantity)
+                {
+                    invalidItems.Add($"{item.Name}: solicitadas {item.Quantity}, disponibles {currentBalance}");
+                    _logger.LogWarning($"Stock insuficiente - {item.Name}: solicitadas {item.Quantity}, disponibles {currentBalance}");
+                }
+            }
+
+            return new StockValidationResponse
+            {
+                AllValid = invalidItems.Count == 0,
+                InvalidItems = invalidItems
+            };
+        }
+    }
+
+    public class StockValidationResponse
+    {
+        public bool AllValid { get; set; }
+        public List<string> InvalidItems { get; set; } = new();
     }
 }

@@ -33,10 +33,16 @@ namespace RiotStore.Infrastructure.Repositories.Implementations
                     {
                         full_name = fullName,
                         email = email,
-                        address = $"{address}, {city}, {state} {zipCode}"
+                        address = $"{address}, {city}, {state} {zipCode}",
+                        created_at = DateTime.UtcNow
                     };
                     _context.Clients.Add(client);
                     await _context.SaveChangesAsync();
+                    
+                    if (client.client_id == 0)
+                    {
+                        _context.Entry(client).Reload();
+                    }
                 }
 
                 decimal totalAmount = items.Sum(i => i.UnitPrice * i.Quantity);

@@ -76,7 +76,7 @@ namespace RiotStore.Infrastructure.Data
             {
                 entity.ToTable("clients");
                 entity.HasKey(c => c.client_id);
-                entity.Property(c => c.client_id).HasColumnName("client_id").ValueGeneratedNever();
+                entity.Property(c => c.client_id).HasColumnName("client_id").ValueGeneratedOnAdd();
                 entity.Property(c => c.full_name).HasColumnName("full_name").IsRequired().HasMaxLength(100);
                 entity.Property(c => c.email).HasColumnName("email").IsRequired().HasMaxLength(100);
                 entity.Property(c => c.address).HasColumnName("address");
