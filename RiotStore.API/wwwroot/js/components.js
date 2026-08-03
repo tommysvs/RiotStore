@@ -29,13 +29,13 @@ function renderNavbar() {
                     Simulador
                 </a>
 
-                <a href="cart.html" class="relative p-2 text-white  hover:bg-amber-500 hover:text-black transition rounded">
+                <a href="cart.html" class="relative p-2 text-white hover:bg-amber-500 hover:text-black transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6h11M10 21a1 1 0 100-2 1 1 0 000 2zm7 0a1 1 0 100-2 1 1 0 000 2z" />
                     </svg>
 
-                    <span id="cart-badge" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                    <span id="cart-badge" class="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 flex items-center justify-center text-xs font-bold">
                         0
                     </span>
                 </a>
