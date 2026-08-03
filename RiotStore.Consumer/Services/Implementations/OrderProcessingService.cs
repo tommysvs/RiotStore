@@ -84,6 +84,8 @@ namespace RiotStore.Consumer.Services.Implementations
 
         private async Task ProcessOrderItemAsync(Order order, OrderItemDto item, OrderCreatedEvent orderEvent)
         {
+            var processingStartTime = DateTime.UtcNow;
+            
             try
             {
                 var product = await _context.Products
@@ -93,6 +95,32 @@ namespace RiotStore.Consumer.Services.Implementations
                 if (product == null)
                 {
                     _logger.LogWarning($"Producto no encontrado: {item.ProductId}");
+                    return;
+                }
+
+                var currentStock = await _stockRepository.GetByProductIdAsync(item.ProductId);
+                
+                if (currentStock == null || currentStock.current_balance < item.Quantity)
+                {
+                    _logger.LogWarning($"Stock insuficiente - Producto: {item.ProductId}, " +
+                        $"Disponible: {currentStock?.current_balance ?? 0}, Solicitado: {item.Quantity}");
+                    
+                    var failedAttempt = new PurchaseAttempt
+                    {
+                        order_id = order.order_id,
+                        product_id = item.ProductId,
+                        quantity_requested = item.Quantity,
+                        product_category = orderEvent.ProductCategory ?? "Sin categoría",
+                        customer_segment = orderEvent.CustomerSegment ?? "mid-demand",
+                        is_retry = orderEvent.IsRetry,
+                        original_order_id = orderEvent.IsRetry ? orderEvent.OriginalOrderId : null,
+                        status = "FAILED_OUT_OF_STOCK",
+                        attempted_at = processingStartTime,
+                        processed_at = DateTime.UtcNow
+                    };
+                    
+                    _context.PurchaseAttempts.Add(failedAttempt);
+                    await _context.SaveChangesAsync();
                     return;
                 }
 
@@ -116,26 +144,23 @@ namespace RiotStore.Consumer.Services.Implementations
                     product_category = orderEvent.ProductCategory ?? "Sin categoría",
                     customer_segment = orderEvent.CustomerSegment ?? "mid-demand",
                     is_retry = orderEvent.IsRetry,
-                    original_order_id = orderEvent.OriginalOrderId,
-                    status = "PROCESSED",
-                    attempted_at = DateTime.UtcNow
+                    original_order_id = orderEvent.IsRetry ? orderEvent.OriginalOrderId : null,
+                    status = "SUCCESS",
+                    attempted_at = processingStartTime,
+                    processed_at = DateTime.UtcNow
                 };
 
                 _context.PurchaseAttempts.Add(purchaseAttempt);
                 await _context.SaveChangesAsync();
 
-                var currentStock = await _stockRepository.GetByProductIdAsync(item.ProductId);
-                if (currentStock != null)
-                {
-                    var newBalance = currentStock.current_balance - item.Quantity;
-                    await _stockRepository.UpdateOrCreateAsync(
-                        item.ProductId,
-                        currentStock.initial_stock,
-                        currentStock.total_attempts + 1,
-                        Math.Max(0, newBalance));
-                }
+                var newBalance = currentStock.current_balance - item.Quantity;
+                await _stockRepository.UpdateOrCreateAsync(
+                    item.ProductId,
+                    currentStock.initial_stock,
+                    currentStock.total_attempts + 1,
+                    newBalance);
 
-                _logger.LogInformation($"Ítem procesado - Orden: {order.order_id}, Producto: {item.ProductId}, Cantidad: {item.Quantity}");
+                _logger.LogInformation($"Ítem procesado exitosamente - Orden: {order.order_id}, Producto: {item.ProductId}, Cantidad: {item.Quantity}");
             }
             catch (Exception ex)
             {

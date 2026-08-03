@@ -32,12 +32,15 @@ namespace RiotStore.API.Services.Implementations
         public async Task SimulatePurchaseAttemptAsync(int productId, string productName, int quantity)
         {
             var product = await _productRepository.GetProductByIdAsync(productId);
+
             var orderEvent = new OrderCreatedEvent
             {
                 OrderId = GenerateUniqueOrderId(),
                 CustomerId = new Random().Next(1, 1000),
                 CreatedAt = DateTime.UtcNow,
                 TotalAmount = quantity * product.price,
+                ProductCategory = product.category?.name ?? "Sin categoría",
+                CustomerSegment = "normal-user",
                 Items = new List<OrderItemDto>
                 {
                     new OrderItemDto
@@ -64,68 +67,71 @@ namespace RiotStore.API.Services.Implementations
         public async Task<SimulationMetricsDto> SimulateBatchWithMetricsAsync(int quantity, int batchCount)
         {
             var startTime = DateTime.UtcNow;
-
-            var metrics = new SimulationMetricsDto
-            {
-                TotalRequests = quantity * batchCount,
-                SuccessCount = 0,
-                FailureCount = 0,
-                StartedAt = startTime
-            };
+            var totalEvents = quantity * batchCount;
+            int sentCount = 0;
 
             try
             {
-                var events = await _dataGenerator.GenerateBatchAsync(metrics.TotalRequests);
+                var events = await _dataGenerator.GenerateBatchAsync(totalEvents);
 
                 foreach (var @event in events)
                 {
                     try
                     {
                         await _kafkaProducer.SendOrderCreatedEventAsync(@event);
-                        metrics.SuccessCount++;
+                        sentCount++;
                     }
                     catch (Exception ex)
                     {
-                        metrics.FailureCount++;
-                        _logger.LogError($"Error enviando evento: {ex.Message}");
+                        _logger.LogError($"Error enviando evento a Kafka: {ex.Message}");
                     }
                 }
 
-                _logger.LogInformation($"Simulación completada: {metrics.SuccessCount} exitosos, {metrics.FailureCount} fallidos");
+                _logger.LogInformation($"Lote enviado: {sentCount}/{totalEvents} eventos a Kafka");
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error en simulación batch: {ex.Message}\n{ex.StackTrace}");
-                metrics.FailureCount = metrics.TotalRequests;
+                _logger.LogError($"Error en simulación batch: {ex.Message}");
             }
 
-            metrics.CompletedAt = DateTime.UtcNow;
+            var completedAt = DateTime.UtcNow;
+            var elapsedSeconds = (completedAt - startTime).TotalSeconds;
+            var eventsPerSecond = elapsedSeconds > 0 ? sentCount / elapsedSeconds : 0;
 
-            var elapsedSeconds = (metrics.CompletedAt - startTime).TotalSeconds;
-            var eventsPerSecond = elapsedSeconds > 0 ? metrics.SuccessCount / elapsedSeconds : 0;
+            await SaveBenchmarkAsync(sentCount, elapsedSeconds, eventsPerSecond, quantity, batchCount);
 
+            return new SimulationMetricsDto
+            {
+                TotalRequests = totalEvents,
+                SuccessCount = sentCount,
+                FailureCount = totalEvents - sentCount,
+                StartedAt = startTime,
+                CompletedAt = completedAt
+            };
+        }
+
+        private async Task SaveBenchmarkAsync(int eventsGenerated, double elapsedSeconds, double eventsPerSecond, int quantity, int batchCount)
+        {
             try
             {
                 var benchmark = new GeneratorBenchmark
                 {
-                    total_events_generated = metrics.SuccessCount,
+                    total_events_generated = eventsGenerated,
                     elapsed_seconds = elapsedSeconds,
                     events_per_second = eventsPerSecond,
                     measured_at = DateTime.UtcNow,
-                    notes = $"Batch simulation: {batchCount} batches × {quantity} items"
+                    notes = $"Simulación: {batchCount} lotes × {quantity} eventos"
                 };
 
                 _context.GeneratorBenchmarks.Add(benchmark);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Benchmark guardado: {metrics.SuccessCount} eventos en {elapsedSeconds:F2}s ({eventsPerSecond:F2} evt/s)");
+                _logger.LogInformation($"Benchmark registrado: {eventsGenerated} eventos en {elapsedSeconds:F2}s ({eventsPerSecond:F2} evt/s)");
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error guardando benchmark: {ex.Message}\n{ex.StackTrace}");
+                _logger.LogError($"Error guardando benchmark: {ex.Message}");
             }
-
-            return metrics;
         }
 
         private long GenerateUniqueOrderId()

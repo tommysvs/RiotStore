@@ -155,5 +155,36 @@ namespace RiotStore.API.Controllers
 
             return Ok(benchmarks);
         }
+
+        [HttpGet("purchase-attempts/summary")]
+        public async Task<IActionResult> GetPurchaseAttemptsSummary(DateTime? since = null)
+        {
+            var query = _context.PurchaseAttempts.AsNoTracking();
+
+            if (since.HasValue)
+            {
+                query = query.Where(pa => pa.attempted_at >= since.Value);
+            }
+
+            var attempts = await query.ToListAsync();
+
+            var summary = new
+            {
+                TotalAttempts = attempts.Count,
+                SuccessfulAttempts = attempts.Count(pa => pa.status == "SUCCESS"),
+                FailedAttempts = attempts.Count(pa => pa.status != "SUCCESS"),
+                FailedOutOfStock = attempts.Count(pa => pa.status == "FAILED_OUT_OF_STOCK"),
+                ConversionRate = attempts.Count > 0 
+                    ? Math.Round((double)attempts.Count(pa => pa.status == "SUCCESS") / attempts.Count * 100, 2) 
+                    : 0,
+                ByStatus = attempts
+                    .GroupBy(pa => pa.status)
+                    .Select(g => new { status = g.Key, count = g.Count() })
+                    .ToList(),
+                Timestamp = DateTime.UtcNow
+            };
+
+            return Ok(summary);
+        }
     }
 }

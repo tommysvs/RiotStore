@@ -53,44 +53,26 @@
 
                 <div id="execution-status" class="mt-12 hidden">
                     <div class="bg-white border-2 border-red-600 p-8">
-                        <p class="text-red-600 uppercase text-sm tracking-wider mb-4 font-bold">Estado de Ejecución</p>
+                        <p class="text-red-600 uppercase text-sm tracking-wider mb-4 font-bold">Estado de ejecución</p>
                         <div class="space-y-3">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Ráfagas completadas</span>
                                 <span id="bursts-completed" class="text-red-600 font-bold">0 / 1</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Peticiones enviadas</span>
+                                <span class="text-gray-600">Peticiones enviadas a Kafka</span>
                                 <span id="requests-sent" class="text-red-600 font-bold">0</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Exitosas</span>
-                                <span id="requests-success" class="text-green-600 font-bold">0</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Fallidas</span>
-                                <span id="requests-failed" class="text-red-600 font-bold">0</span>
-                            </div>
-                            <div class="flex justify-between border-t border-gray-300 pt-3 mt-3">
-                                <span class="text-gray-600 font-bold">Throughput (eventos/segundo)</span>
-                                <span id="throughput-result" class="text-red-600 font-bold">-</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Tiempo total (segundos)</span>
                                 <span id="elapsed-time" class="text-red-600 font-bold">-</span>
                             </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Throughput (peticiones/segundo)</span>
+                                <span id="throughput-result" class="text-red-600 font-bold">-</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="bg-gray-50 border-2 border-gray-300 p-8 mt-12">
-                <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight mb-6">Información técnica</h3>
-                <div class="space-y-4 text-sm text-gray-700">
-                    <p><span class="text-red-600 font-bold">Endpoint:</span> POST /api/simulator/batch-metrics</p>
-                    <p><span class="text-red-600 font-bold">Body esperado:</span> { quantity, batchCount }</p>
-                    <p><span class="text-red-600 font-bold">Respuesta:</span> { totalRequests, successCount, failureCount, startedAt, completedAt }</p>
-                    <p class="mt-6 text-gray-600">Este simulador envía peticiones masivas al backend para probar el rendimiento ante picos de tráfico durante flash sales. La simulación utiliza artículos en demanda. El throughput se calcula localmente y refleja eventos/segundo.</p>
                 </div>
             </div>
         </section>
@@ -137,8 +119,6 @@
             executionStatus.classList.remove('hidden');
 
             let totalSent = 0;
-            let totalSuccess = 0;
-            let totalFailed = 0;
             const startTime = Date.now();
 
             for (let burst = 0; burst < burstCount; burst++) {
@@ -154,21 +134,15 @@
 
                     const data = await response.json();
                     totalSent += data.totalRequests;
-                    totalSuccess += data.successCount;
-                    totalFailed += data.failureCount;
 
                     document.getElementById('bursts-completed').textContent = `${burst + 1} / ${burstCount}`;
                     document.getElementById('requests-sent').textContent = totalSent.toLocaleString('es-ES');
-                    document.getElementById('requests-success').textContent = totalSuccess.toLocaleString('es-ES');
-                    document.getElementById('requests-failed').textContent = totalFailed.toLocaleString('es-ES');
 
                     if (burst < burstCount - 1) {
                         await new Promise(resolve => setTimeout(resolve, burstInterval));
                     }
                 } catch (error) {
                     console.error('Error en ráfaga', burst + 1, ':', error);
-                    totalFailed += batchSize;
-                    document.getElementById('requests-failed').textContent = totalFailed.toLocaleString('es-ES');
                 }
             }
 
