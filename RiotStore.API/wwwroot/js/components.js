@@ -159,23 +159,6 @@ function renderBreadcrumb(items) {
     `;
 }
 
-// Render input field
-function renderInput(id, label, type = 'text', required = false) {
-    return `
-        <div>
-            <label class="block text-gray-700 uppercase text-xs tracking-wider font-bold mb-2">
-                ${label}${required ? ' *' : ''}
-            </label>
-            <input 
-                type="${type}" 
-                id="${id}" 
-                ${required ? 'required' : ''}
-                class="w-full bg-white border border-gray-300 px-4 py-2 text-gray-900 focus:border-red-600 focus:outline-none"
-            >
-        </div>
-    `;
-}
-
 // Show notification
 function showNotification(message, type = 'success', duration = 3000) {
     const notification = document.createElement('div');
@@ -190,39 +173,6 @@ function showNotification(message, type = 'success', duration = 3000) {
     document.body.appendChild(notification);
 
     setTimeout(() => notification.remove(), duration);
-}
-
-// Show confirm modal
-function showConfirmModal(title, message, onConfirm, onCancel) {
-    const modal = document.createElement('div');
-    modal.innerHTML = `
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9998]">
-            <div class="bg-white p-8 max-w-md">
-                <h2 class="text-2xl font-bold text-gray-900 uppercase mb-4">${title}</h2>
-                <p class="text-gray-600 mb-8">${message}</p>
-                <div class="flex gap-4">
-                    <button id="confirm-btn" class="flex-1 px-6 py-2 bg-red-600 text-white font-bold uppercase hover:bg-red-700 transition">
-                        Confirmar
-                    </button>
-                    <button id="cancel-btn" class="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-bold uppercase hover:bg-gray-400 transition">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    document.getElementById('confirm-btn').addEventListener('click', () => {
-        onConfirm();
-        modal.remove();
-    });
-
-    document.getElementById('cancel-btn').addEventListener('click', () => {
-        if (onCancel) onCancel();
-        modal.remove();
-    });
 }
 
 // Initialize on DOM ready
