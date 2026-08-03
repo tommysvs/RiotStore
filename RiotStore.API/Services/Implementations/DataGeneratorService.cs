@@ -39,7 +39,6 @@ namespace RiotStore.API.Services.Implementations
             ILogger<DataGeneratorService> logger)
         {
             _productRepository = productRepository;
-            _logger = logger;
         }
 
         private async Task<List<Product>> GetProductsAsync()

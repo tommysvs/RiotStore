@@ -11,9 +11,7 @@ namespace RiotStore.API.Controllers
     {
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
-        private readonly IStockRepository _stockRepository;
         private readonly RiotStoreDbContext _context;
-        private readonly ILogger<ProductsController> _logger;
 
         public ProductsController(
             IProductRepository productRepository,
@@ -24,9 +22,7 @@ namespace RiotStore.API.Controllers
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
-            _stockRepository = stockRepository;
             _context = context;
-            _logger = logger;
         }
 
         [HttpGet]
@@ -66,8 +62,6 @@ namespace RiotStore.API.Controllers
             
             var currentStock = stock?.current_balance ?? 0;
             
-            _logger.LogInformation($"Producto: {product.name} (ID: {productId}), Stock DB: {stock?.current_balance}, CurrentStock var: {currentStock}");
-            
             var productWithStock = new
             {
                 product.product_id,
@@ -90,14 +84,6 @@ namespace RiotStore.API.Controllers
                 .AsNoTracking()
                 .ToListAsync();
 
-            _logger.LogInformation($"================================");
-            _logger.LogInformation($"TOTAL STOCKS EN BD: {allStocks.Count}");
-            foreach (var s in allStocks)
-            {
-                _logger.LogInformation($"  - ProductID: {s.product_id}, Balance: {s.current_balance}, Initial: {s.initial_stock}");
-            }
-            _logger.LogInformation($"================================");
-
             var stockDict = allStocks.ToDictionary(s => s.product_id);
 
             var enriched = new List<object>();
@@ -107,12 +93,6 @@ namespace RiotStore.API.Controllers
                 var hasStock = stockDict.TryGetValue(product.product_id, out var stock);
                 var currentStock = stock?.current_balance ?? 0;
                 var isAvailable = currentStock > 0;
-                
-                _logger.LogInformation($"PRODUCTO: {product.name} (ID: {product.product_id})");
-                _logger.LogInformation($"  - ¿Encontrado en dict?: {hasStock}");
-                _logger.LogInformation($"  - Stock object NULL?: {stock == null}");
-                _logger.LogInformation($"  - CurrentStock value: {currentStock}");
-                _logger.LogInformation($"  - IsAvailable: {isAvailable}");
                 
                 enriched.Add(new
                 {

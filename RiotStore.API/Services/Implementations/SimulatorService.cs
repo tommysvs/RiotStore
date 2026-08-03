@@ -86,8 +86,6 @@ namespace RiotStore.API.Services.Implementations
                         _logger.LogError($"Error enviando evento a Kafka: {ex.Message}");
                     }
                 }
-
-                _logger.LogInformation($"Lote enviado: {sentCount}/{totalEvents} eventos a Kafka");
             }
             catch (Exception ex)
             {
@@ -125,8 +123,6 @@ namespace RiotStore.API.Services.Implementations
 
                 _context.GeneratorBenchmarks.Add(benchmark);
                 await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Benchmark registrado: {eventsGenerated} eventos en {elapsedSeconds:F2}s ({eventsPerSecond:F2} evt/s)");
             }
             catch (Exception ex)
             {

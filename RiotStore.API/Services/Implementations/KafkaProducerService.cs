@@ -31,7 +31,6 @@ namespace RiotStore.API.Services.Implementations
                 };
 
                 var result = await _producer.ProduceAsync("order-events", message);
-                _logger.LogInformation($"Evento enviado a Kafka: {result.TopicPartitionOffset}");
             }
             catch (Exception ex)
             {

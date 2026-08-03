@@ -12,9 +12,7 @@ namespace RiotStore.API.Controllers
     public class CheckoutController : ControllerBase
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly IStockRepository _stockRepository;
         private readonly RiotStoreDbContext _context;
-        private readonly ILogger<CheckoutController> _logger;
 
         public CheckoutController(
             IOrderRepository orderRepository,
@@ -23,9 +21,7 @@ namespace RiotStore.API.Controllers
             ILogger<CheckoutController> logger)
         {
             _orderRepository = orderRepository;
-            _stockRepository = stockRepository;
             _context = context;
-            _logger = logger;
         }
 
         [HttpPost]
@@ -33,18 +29,14 @@ namespace RiotStore.API.Controllers
         {
             try
             {
-                _logger.LogInformation("Checkout request received");
-
                 if (request?.Customer == null || request.Items == null || !request.Items.Any())
                 {
-                    _logger.LogWarning("Invalid checkout request - missing customer or items");
                     return BadRequest(new { error = "Customer y items son requeridos" });
                 }
 
                 var stockValidation = await ValidateStockAsync(request.Items);
                 if (!stockValidation.AllValid)
                 {
-                    _logger.LogWarning($"Stock validation failed: {string.Join(", ", stockValidation.InvalidItems)}");
                     return BadRequest(new
                     {
                         error = "Stock insuficiente",
@@ -60,8 +52,6 @@ namespace RiotStore.API.Controllers
                     UnitPrice = item.Price
                 }).ToList();
 
-                _logger.LogInformation($"Processing checkout with {orderItems.Count} items");
-
                 var orderId = await _orderRepository.CreateOrderAsync(
                     request.Customer.FullName,
                     request.Customer.Email,
@@ -73,12 +63,10 @@ namespace RiotStore.API.Controllers
                     request.PaymentMethod
                 );
 
-                _logger.LogInformation($"Order created successfully with ID: {orderId}");
                 return Ok(new { orderId, message = "Orden procesada exitosamente" });
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Checkout error: {ex.Message}\n{ex.StackTrace}");
                 return StatusCode(500, new { error = $"Error al procesar el pedido: {ex.Message}" });
             }
         }
@@ -101,7 +89,6 @@ namespace RiotStore.API.Controllers
                 if (currentBalance < item.Quantity)
                 {
                     invalidItems.Add($"{item.Name}: solicitadas {item.Quantity}, disponibles {currentBalance}");
-                    _logger.LogWarning($"Stock insuficiente - {item.Name}: solicitadas {item.Quantity}, disponibles {currentBalance}");
                 }
             }
 
