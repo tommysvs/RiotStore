@@ -14,6 +14,7 @@ namespace RiotStore.API.Services.Implementations
         private readonly IDataGeneratorService _dataGenerator;
         private readonly RiotStoreDbContext _context;
         private readonly ILogger<SimulatorService> _logger;
+        private static long _orderIdCounter = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         public SimulatorService(
             IKafkaProducerService kafkaProducer,
@@ -98,6 +99,8 @@ namespace RiotStore.API.Services.Implementations
 
             await SaveBenchmarkAsync(sentCount, elapsedSeconds, eventsPerSecond, quantity, batchCount);
 
+            await ResetSequencesAsync();
+
             return new SimulationMetricsDto
             {
                 TotalRequests = totalEvents,
@@ -106,6 +109,20 @@ namespace RiotStore.API.Services.Implementations
                 StartedAt = startTime,
                 CompletedAt = completedAt
             };
+        }
+
+        private async Task ResetSequencesAsync()
+        {
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "SELECT setval('clients_client_id_seq', (SELECT COALESCE(MAX(client_id), 0) + 1 FROM clients))"
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error al resetear las secuencias: {ex.Message}");
+            }
         }
 
         private async Task SaveBenchmarkAsync(int eventsGenerated, double elapsedSeconds, double eventsPerSecond, int quantity, int batchCount)
@@ -126,13 +143,13 @@ namespace RiotStore.API.Services.Implementations
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error guardando benchmark: {ex.Message}");
+                _logger.LogError($"Error al guardar benchmark: {ex.Message}");
             }
         }
 
         private long GenerateUniqueOrderId()
         {
-            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            return Interlocked.Increment(ref _orderIdCounter);
         }
     }
 }
