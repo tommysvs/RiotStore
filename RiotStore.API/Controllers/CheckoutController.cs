@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using RiotStore.API.DTOs;
 using RiotStore.Infrastructure.Repositories.Interfaces;
+using RiotStore.API.DTOs;
+using RiotStore.Shared.Events;
 
 namespace RiotStore.API.Controllers
 {
@@ -9,14 +10,12 @@ namespace RiotStore.API.Controllers
     public class CheckoutController : ControllerBase
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly IProductRepository _productRepository;
+        private readonly ILogger<CheckoutController> _logger;
 
-        public CheckoutController(
-            IOrderRepository orderRepository,
-            IProductRepository productRepository)
+        public CheckoutController(IOrderRepository orderRepository, ILogger<CheckoutController> logger)
         {
             _orderRepository = orderRepository;
-            _productRepository = productRepository;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -24,29 +23,23 @@ namespace RiotStore.API.Controllers
         {
             try
             {
-                if (request?.Customer == null || request.Items == null || request.Items.Count == 0)
+                _logger.LogInformation("Checkout request received");
+
+                if (request?.Customer == null || request.Items == null || !request.Items.Any())
                 {
-                    return BadRequest(new { message = "Datos de checkout inválidos" });
+                    _logger.LogWarning("Invalid checkout request - missing customer or items");
+                    return BadRequest(new { error = "Customer y items son requeridos" });
                 }
 
-                var orderItems = new List<OrderItemDto>();
-                foreach (var item in request.Items)
+                var orderItems = request.Items.Select(item => new OrderItemDto
                 {
-                    var product = await _productRepository.GetProductByIdAsync(item.ProductId);
-                    if (product == null)
-                    {
-                        return BadRequest(new { message = $"Producto {item.ProductId} no encontrado" });
-                    }
+                    ProductId = item.ProductId,
+                    ProductName = item.Name,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.Price
+                }).ToList();
 
-                    orderItems.Add(new OrderItemDto
-                    {
-                        ProductId = item.ProductId,
-                        Name = item.Name,
-                        Sku = product.sku,
-                        Price = item.Price,
-                        Quantity = item.Quantity
-                    });
-                }
+                _logger.LogInformation($"Processing checkout with {orderItems.Count} items");
 
                 var orderId = await _orderRepository.CreateOrderAsync(
                     request.Customer.FullName,
@@ -59,11 +52,13 @@ namespace RiotStore.API.Controllers
                     request.PaymentMethod
                 );
 
-                return Ok(new { orderId = orderId, message = "Pedido procesado correctamente" });
+                _logger.LogInformation($"Order created successfully with ID: {orderId}");
+                return Ok(new { orderId, message = "Orden procesada exitosamente" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error al procesar el pedido", error = ex.Message });
+                _logger.LogError($"Checkout error: {ex.Message}\n{ex.StackTrace}");
+                return StatusCode(500, new { error = $"Error al procesar el pedido: {ex.Message}" });
             }
         }
     }
