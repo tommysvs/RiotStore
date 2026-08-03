@@ -19,9 +19,6 @@
                     <div class="aspect-square bg-gray-100 border border-gray-200 overflow-hidden">
                         <img id="product-image" src="" alt="" class="w-full h-full object-cover">
                     </div>
-                    <p id="stock-indicator" class="text-center text-sm font-semibold py-2 px-4 border-2 border-gray-200">
-                        Stock disponible
-                    </p>
                 </div>
 
                 <div class="flex flex-col justify-start">
@@ -47,9 +44,6 @@
                         <button id="btn-add-cart" class="flex-1 px-6 py-4 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition border-2 border-red-600">
                             Añadir al Carrito
                         </button>
-                        <button id="btn-buy-now" class="flex-1 px-6 py-4 bg-gray-900 text-white font-bold uppercase tracking-widest hover:bg-black transition border-2 border-gray-900">
-                            Comprar Ahora
-                        </button>
                     </div>
 
                     <div class="mt-12 pt-8 border-t-2 border-gray-200">
@@ -63,13 +57,6 @@
                         </p>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <section class="bg-gray-50 border-t border-gray-200 py-12 mt-12">
-            <div class="max-w-7xl mx-auto px-4">
-                <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-8">Productos Relacionados</h2>
-                <div id="related-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
             </div>
         </section>
     </main>
@@ -93,12 +80,10 @@
                 renderBreadcrumbContainer();
 
                 renderProductData(currentProduct);
-
-                await loadRelatedProducts(currentProduct.category_id);
+                updateStockIndicator(currentProduct);
 
                 attachProductListeners();
             } catch (error) {
-                console.error('Error loading product:', error);
                 document.getElementById('main-content').innerHTML = '<div class="text-center py-20 text-red-600"><p>Producto no encontrado</p></div>';
             }
 
@@ -123,6 +108,21 @@
             document.getElementById('product-price').textContent = `$${parseFloat(product.price).toFixed(2)}`;
         }
 
+        function updateStockIndicator(product) {
+            const btnAddCart = document.getElementById('btn-add-cart');
+            const isOutOfStock = !product.isAvailable || product.currentStock === 0;
+
+            if (isOutOfStock) {
+                btnAddCart.textContent = 'Agotado';
+                btnAddCart.disabled = true;
+                btnAddCart.className = 'flex-1 px-6 py-4 bg-gray-400 text-white font-bold uppercase tracking-widest cursor-not-allowed border-2 border-gray-400';
+            } else {
+                btnAddCart.textContent = 'Añadir al Carrito';
+                btnAddCart.disabled = false;
+                btnAddCart.className = 'flex-1 px-6 py-4 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition border-2 border-red-600';
+            }
+        }
+
         function attachProductListeners() {
             document.getElementById('qty-minus').addEventListener('click', () => {
                 const input = document.getElementById('qty-input');
@@ -138,24 +138,6 @@
                 addToCart(currentProduct, quantity);
                 showNotification('Producto añadido al carrito', 'success');
             });
-
-            document.getElementById('btn-buy-now').addEventListener('click', () => {
-                const quantity = parseInt(document.getElementById('qty-input').value);
-                addToCart(currentProduct, quantity);
-                window.location.href = 'cart.html';
-            });
-        }
-
-        async function loadRelatedProducts(categoryId) {
-            try {
-                const response = await fetch(`/api/products/category/${categoryId}`);
-                const products = await response.json();
-                const filtered = products.filter(p => p.product_id !== parseInt(productId));
-                const container = document.getElementById('related-products');
-                container.innerHTML = filtered.slice(0, 4).map(p => renderProductCard(p)).join('');
-            } catch (error) {
-                console.error('Error loading related products:', error);
-            }
         }
 
         document.addEventListener('DOMContentLoaded', loadProductPage);

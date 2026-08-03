@@ -74,13 +74,33 @@ function renderFooter() {
     `;
 }
 
-// Render Product Card
+// Toggle add to cart button
+function toggleAddToCart(event, productId, productName, price, currentStock) {
+    event.stopPropagation();
+    
+    if (currentStock <= 0) {
+        alert('Este producto está agotado');
+        return;
+    }
+    
+    addToCart({ 
+        product_id: productId, 
+        name: productName, 
+        price: price 
+    }, 1);
+}
+
+// Render product card
 function renderProductCard(product) {
+    const isOutOfStock = !product.isAvailable;
+    
     return `
         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition flex flex-col h-full group cursor-pointer" onclick="navigateToProduct(${product.product_id})">
             <img src="${product.image_url || 'https://via.placeholder.com/300'}" 
                 alt="${product.name}" 
-                class="w-full h-48 object-contain">
+                class="w-full h-48 object-contain ${isOutOfStock ? 'opacity-50' : ''}">
+
+            ${isOutOfStock ? '<div class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold">AGOTADO</div>' : ''}
 
             <div class="p-4 flex flex-col flex-grow">
                 <p class="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -99,8 +119,9 @@ function renderProductCard(product) {
                         </div>
 
                         <button 
-                            onclick="addToCart(${JSON.stringify(product).replace(/"/g, '&quot;')}, 1); event.stopPropagation();" 
-                            class="opacity-0 group-hover:opacity-100 transition duration-200 bg-red-600 text-white p-2 rounded-full hover:bg-red-700">
+                            onclick="toggleAddToCart(event, ${product.product_id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, ${product.currentStock || 0})"
+                            ${isOutOfStock ? 'disabled' : ''}
+                            class="opacity-0 group-hover:opacity-100 transition duration-200 ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'} text-white p-2 rounded-full">
                             
                             <svg xmlns="http://www.w3.org/2000/svg" 
                                 fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
@@ -116,7 +137,7 @@ function renderProductCard(product) {
     `;
 }
 
-// Navigate to Product Detail Page
+// Navigate to product detail page
 function navigateToProduct(productId) {
     window.location.href = `product.html?id=${productId}`;
 }
