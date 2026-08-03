@@ -1,5 +1,6 @@
 ﻿using RiotStore.Infrastructure.Data;
 using RiotStore.Infrastructure.Repositories.Interfaces;
+using RiotStore.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace RiotStore.Infrastructure.Repositories.Implementations
@@ -38,7 +39,7 @@ namespace RiotStore.Infrastructure.Repositories.Implementations
                     await _context.SaveChangesAsync();
                 }
 
-                decimal totalAmount = items.Sum(i => i.Price * i.Quantity);
+                decimal totalAmount = items.Sum(i => i.UnitPrice * i.Quantity);
 
                 var order = new Order
                 {
@@ -47,6 +48,9 @@ namespace RiotStore.Infrastructure.Repositories.Implementations
                     total_amount = totalAmount,
                     origin = "WEB_UI",
                     status = "PROCESSED",
+                    customer_segment = "mid-demand",
+                    is_retry = false,
+                    total_quantity_requested = items.Sum(i => i.Quantity),
                     created_at = DateTime.UtcNow
                 };
 
@@ -58,8 +62,8 @@ namespace RiotStore.Infrastructure.Repositories.Implementations
                     order_id = order.order_id,
                     product_id = item.ProductId,
                     quantity = item.Quantity,
-                    unit_price = item.Price,
-                    subtotal = item.Price * item.Quantity
+                    unit_price = item.UnitPrice,
+                    subtotal = item.UnitPrice * item.Quantity
                 }).ToList();
 
                 _context.OrderDetails.AddRange(orderDetails);

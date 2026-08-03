@@ -5,11 +5,19 @@ namespace RiotStore.Shared.Events
 {
     public class OrderCreatedEvent
     {
-        public int OrderId { get; set; }
+        public long OrderId { get; set; }
         public int CustomerId { get; set; }
         public DateTime CreatedAt { get; set; }
         public decimal TotalAmount { get; set; }
         public List<OrderItemDto> Items { get; set; } = new();
+        public string ProductCategory { get; set; } = null!;
+        public string CustomerSegment { get; set; } = "mid-demand";
+        public bool IsRetry { get; set; } = false;
+        public long? OriginalOrderId { get; set; }
+        public int TotalQuantityRequested
+        {
+            get => Items?.Sum(i => i.Quantity) ?? 0;
+        }
     }
 
     public class OrderItemDto

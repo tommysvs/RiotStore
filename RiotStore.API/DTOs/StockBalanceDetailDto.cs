@@ -1,10 +1,12 @@
-namespace RiotStore.API.Dtos
+﻿namespace RiotStore.API.Dtos
 {
     public class StockBalanceDetailDto
     {
         public int ProductId { get; set; }
         public string ProductName { get; set; } = null!;
         public string ProductSku { get; set; } = null!;
+        public int? CategoryId { get; set; }
+        public string CategoryName { get; set; } = "Sin categoría";
         public int InitialStock { get; set; }
         public int CurrentBalance { get; set; }
         public int TotalAttempts { get; set; }

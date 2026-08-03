@@ -8,19 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// Infrastructure
 builder.Services.AddDbContext<RiotStoreDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Repositories
 builder.Services.AddScoped<IStockRepository, StockRepository>();
-builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
-// Services
 builder.Services.AddScoped<IOrderProcessingService, OrderProcessingService>();
 builder.Services.AddSingleton<IKafkaConsumerService, KafkaConsumerService>();
 
-// Workers
 builder.Services.AddHostedService<OrderProcessingWorker>();
 
 var host = builder.Build();

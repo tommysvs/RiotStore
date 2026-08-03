@@ -15,43 +15,49 @@ namespace RiotStore.Infrastructure.Repositories.Implementations
 
         public async Task<StockBalance?> GetByProductIdAsync(int productId)
         {
-            return await _context.StockBalances.FirstOrDefaultAsync(s => s.product_id == productId);
+            return await _context.StockBalances.AsNoTracking().FirstOrDefaultAsync(s => s.product_id == productId);
         }
 
         public async Task<List<StockBalance>> GetAllAsync()
         {
-            return await _context.StockBalances.ToListAsync();
+            return await _context.StockBalances.AsNoTracking().ToListAsync();
         }
 
         public async Task<StockBalance> UpdateOrCreateAsync(int productId, int initialStock, int totalAttempts, int currentBalance)
         {
-            var existing = await GetByProductIdAsync(productId);
+            var existing = await _context.StockBalances.FirstOrDefaultAsync(s => s.product_id == productId);
 
             if (existing != null)
             {
                 existing.total_attempts = totalAttempts;
                 existing.current_balance = currentBalance;
-                existing.status = currentBalance <= 0 ? "OUT_OF_STOCK" : currentBalance < 5 ? "LOW_STOCK" : "IN_STOCK";
                 existing.last_updated = DateTime.UtcNow;
                 _context.StockBalances.Update(existing);
             }
             else
             {
-                var newBalance = new StockBalance
+                var stockBalance = new StockBalance
                 {
                     product_id = productId,
                     initial_stock = initialStock,
                     total_attempts = totalAttempts,
                     current_balance = currentBalance,
-                    status = currentBalance <= 0 ? "OUT_OF_STOCK" : "IN_STOCK",
+                    status = "ACTIVE",
                     last_updated = DateTime.UtcNow
                 };
-                _context.StockBalances.Add(newBalance);
-                existing = newBalance;
+                _context.StockBalances.Add(stockBalance);
             }
 
             await _context.SaveChangesAsync();
-            return existing;
+            return existing ?? new StockBalance
+            {
+                product_id = productId,
+                initial_stock = initialStock,
+                total_attempts = totalAttempts,
+                current_balance = currentBalance,
+                status = "ACTIVE",
+                last_updated = DateTime.UtcNow
+            };
         }
     }
 }
