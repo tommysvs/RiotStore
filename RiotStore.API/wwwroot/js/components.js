@@ -21,6 +21,7 @@ function renderNavbar() {
             <div id="nav-menu" class="hidden md:flex gap-8 items-center">
                 <a href="index.html" class="text-white hover:text-amber-400 transition uppercase text-sm font-semibold">Inicio</a>
                 <a href="catalog.html" class="text-white hover:text-amber-400 transition uppercase text-sm font-semibold">Colección</a>
+                <a href="dashboard.html" class="text-white hover:text-amber-400 transition uppercase text-sm font-semibold">Dashboard</a>
             </div>
 
             <div class="flex items-center gap-4">
